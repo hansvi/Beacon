@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Arduino Beacon Controller</title>
+	<script>
+	function setPage(pagenr)
+	{
+		var conf_el = document.getElementById("config_div");
+		var stat_el = document.getElementById("status_div");
+		var log_el = document.getElementById("log_div");
+		conf_el.style.display = (pagenr==0 ? "block":"none");
+		stat_el.style.display = (pagenr==1 ? "block":"none");
+		log_el.style.display = (pagenr==2 ? "block":"none");
+	}
+	function showConfig()
+	{
+		console.log("config");
+		setPage(0);
+	}
+	function showStatus()
+	{
+		console.log("status");
+		setPage(1);
+	}
+	function showLog()
+	{
+		console.log("log");
+		setPage(2);
+	}
+	</script>
+	<style>
+	#menu ul {
+		list-style-type: none;
+		display:left;
+		margin: 0 20px 20px 0;
+		border: 1px solid blue;
+		padding: 0 5px 0 5px;
+		width: 120px;
+	}
+	#menu ul li {
+		
+	}
+
+	h1 {
+		font-size: 120%;
+		color: blue;
+		margin: 0 0 10px 0;
+	}
+
+	h2 {
+		font-size: 85%;
+		color: #5734E6;
+		margin: 5px 0 5px 0;
+	}
+
+	p, form, button {
+		font-size: 80%;
+		color: #252525;
+	}
+
+	.small_text {
+		font-size: 70%;
+		color: #737373;
+	}
+	</style>
+</head>
+<body onload="GetArduinoIO()">
+	<h1>Arduino Beacon controller</h1>
+	<div class="Menu">
+	<ul>
+		<li onclick="showConfig()">Configuration</li>
+		<li OnClick="showStatus()">Status</li>
+		<li onClick="showLog()">Logs</li>
+	</ul>
+	</div>
+
+	<div id="config_div" style="display:block">
+	<h2>Beacon 0</h2>
+	<form action="setbeacon.htm">
+	<table>
+	<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+	<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+	<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+	<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+	<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+	</table>
+	<input type="hidden" name="beacon" value="0">
+	</form>
+	<h2>Beacon 1</h2>
+	<h2>Beacon 2</h2>
+	<h2>Beacon 3</h2>
+	<h2>Beacon 4</h2>
+	<h2>Beacon 5</h2>
+	<h2>Beacon 6</h2>
+	<h2>Beacon 7</h2>
+	<h2>Beacon 8</h2>
+	<h2>Beacon 9</h2>
+	</div>
+
+	<div id="status_div" style="display:none">
+	<h2>Status</h2>
+	</div>
+
+	<div id="log_div" style="display:none">
+	<h2>Log</h2>
+	</div>
+
+
+
+
+</body>
+</html>
