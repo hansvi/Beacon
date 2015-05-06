@@ -1,33 +1,12 @@
 <!DOCTYPE html>
 <html>
+<html lang="us">
 <head>
+	<meta charset="utf-8">
 	<title>Arduino Beacon Controller</title>
-	<script>
-	function setPage(pagenr)
-	{
-		var conf_el = document.getElementById("config_div");
-		var stat_el = document.getElementById("status_div");
-		var log_el = document.getElementById("log_div");
-		conf_el.style.display = (pagenr==0 ? "block":"none");
-		stat_el.style.display = (pagenr==1 ? "block":"none");
-		log_el.style.display = (pagenr==2 ? "block":"none");
-	}
-	function showConfig()
-	{
-		console.log("config");
-		setPage(0);
-	}
-	function showStatus()
-	{
-		console.log("status");
-		setPage(1);
-	}
-	function showLog()
-	{
-		console.log("log");
-		setPage(2);
-	}
-	</script>
+	<script src="jquery.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<link href="jquery-ui.min.css" rel="stylesheet">
 	<style>
 	#menu ul {
 		list-style-type: none;
@@ -63,50 +42,166 @@
 		color: #737373;
 	}
 	</style>
+	<script>
+	function GetArduinoIO()
+	{
+	}
+	</script>
 </head>
 <body onload="GetArduinoIO()">
-	<h1>Arduino Beacon controller</h1>
-	<div class="Menu">
+<h1>Arduino Beacon Controller</h1>
+<div id="tabs">
 	<ul>
-		<li onclick="showConfig()">Configuration</li>
-		<li OnClick="showStatus()">Status</li>
-		<li onClick="showLog()">Logs</li>
+		<li><a href="#tabs-1">Configuration</a></li>
+		<li><a href="#tabs-2">Status</a></li>
+		<li><a href="#tabs-3">Logs</a></li>
 	</ul>
+	<div id="tabs-1">
+		<div id="accordion">
+			<h2>Beacon 0</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="0">
+				</form>
+			</div>
+			<h2>Beacon 1</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="1">
+				</form>
+			</div>
+			<h2>Beacon 2</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="2">
+				</form>
+			</div>
+			<h2>Beacon 3</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="3">
+				</form>
+			</div>
+			<h2>Beacon 4</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="4">
+				</form>
+			</div>
+			<h2>Beacon 5</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="5">
+				</form>
+			</div>
+			<h2>Beacon 6</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="6">
+				</form>
+			</div>
+			<h2>Beacon 7</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="7">
+				</form>
+			</div>
+			<h2>Beacon 8</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="8">
+				</form>
+			</div>
+			<h2>Beacon 9</h2>
+			<div>
+				<form action="setbeacon.htm">
+				<table>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				</table>
+				<input type="hidden" name="beacon" value="9">
+				</form>
+			</div>
+		</div>
 	</div>
 
-	<div id="config_div" style="display:block">
-	<h2>Beacon 0</h2>
-	<form action="setbeacon.htm">
-	<table>
-	<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-	<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-	<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-	<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-	<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
-	</table>
-	<input type="hidden" name="beacon" value="0">
-	</form>
-	<h2>Beacon 1</h2>
-	<h2>Beacon 2</h2>
-	<h2>Beacon 3</h2>
-	<h2>Beacon 4</h2>
-	<h2>Beacon 5</h2>
-	<h2>Beacon 6</h2>
-	<h2>Beacon 7</h2>
-	<h2>Beacon 8</h2>
-	<h2>Beacon 9</h2>
+	<div id="tabs-2">
 	</div>
 
-	<div id="status_div" style="display:none">
-	<h2>Status</h2>
+	<div id="tabs-3">
 	</div>
+</div>
 
-	<div id="log_div" style="display:none">
-	<h2>Log</h2>
-	</div>
-
-
-
+<script>
+$( "#tabs" ).tabs();
+$( "#accordion" ).accordion();
+</script>
 
 </body>
 </html>
