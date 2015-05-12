@@ -7,46 +7,27 @@
 	<script src="jquery.min.js"></script>
 	<script src="jquery-ui.min.js"></script>
 	<link href="jquery-ui.min.css" rel="stylesheet">
-	<style>
-	#menu ul {
-		list-style-type: none;
-		display:left;
-		margin: 0 20px 20px 0;
-		border: 1px solid blue;
-		padding: 0 5px 0 5px;
-		width: 120px;
-	}
-	#menu ul li {
-		
-	}
-
-	h1 {
-		font-size: 120%;
-		color: blue;
-		margin: 0 0 10px 0;
-	}
-
-	h2 {
-		font-size: 85%;
-		color: #5734E6;
-		margin: 5px 0 5px 0;
-	}
-
-	p, form, button {
-		font-size: 80%;
-		color: #252525;
-	}
-
-	.small_text {
-		font-size: 70%;
-		color: #737373;
-	}
-	</style>
 	<script>
 	function GetArduinoIO()
 	{
 	}
 	</script>
+	<style>
+	.undotext
+	{
+		margin: 0;
+		padding : 0;
+		height: 30px;
+		width: 30px;
+	}
+	.settext
+	{
+		margin: 0;
+		padding: 0;
+		height: 30px;
+		width: 30px;
+	}
+	</style>
 </head>
 <body onload="GetArduinoIO()">
 <h1>Arduino Beacon Controller</h1>
@@ -58,132 +39,142 @@
 	</ul>
 	<div id="tabs-1">
 		<div id="accordion">
-			<h2>Beacon 0</h2>
+			<h2 id="b0_header">Beacon 0 <span id="b0_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b0_tx"></input><label for="b0_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text" id="b0_text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="0">
 				</form>
 			</div>
-			<h2>Beacon 1</h2>
+			<h2 id="b1_header">Beacon 1 <span id="b1_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b1_tx"><label for="b1_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="1">
 				</form>
 			</div>
-			<h2>Beacon 2</h2>
+			<h2 id="b2_header">Beacon 2 <span id="b2_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b2_tx"><label for="b2_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="2">
 				</form>
 			</div>
-			<h2>Beacon 3</h2>
+			<h2 id="b3_header">Beacon 3 <span id="b3_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b3_tx"><label for="b3_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="3">
 				</form>
 			</div>
-			<h2>Beacon 4</h2>
+			<h2 id="b4_header">Beacon 4 <span id="b4_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b4_tx"><label for="b4_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="4">
 				</form>
 			</div>
-			<h2>Beacon 5</h2>
+			<h2 id="b5_header">Beacon 5 <span id="b5_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b5_tx"><label for="b5_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="5">
 				</form>
 			</div>
-			<h2>Beacon 6</h2>
+			<h2 id="b6_header">Beacon 6 <span id="b6_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b6_tx"><label for="b6_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="6">
 				</form>
 			</div>
-			<h2>Beacon 7</h2>
+			<h2 id="b7_header">Beacon 7 <span id="b7_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b7_tx"><label for="b7_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="7">
 				</form>
 			</div>
-			<h2>Beacon 8</h2>
+			<h2 id="b8_header">Beacon 8 <span id="b8_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b8_tx"><label for="b8_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="8">
 				</form>
 			</div>
-			<h2>Beacon 9</h2>
+			<h2 id="b9_header">Beacon 9 <span id="b9_titleState">Off</span></h2>
 			<div>
 				<form action="setbeacon.htm">
 				<table>
-				<tr><td>Default text:</td><td><input type="text" name="text"></input></td></tr>
-				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td></tr>
-				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td></tr>
-				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td></tr>
-				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td></tr>
+				<tr><td>Transmit:</td><td><input type="checkbox" name="transmit" id="b9_tx"><label for="b9_tx">Off</label></td></tr>
+				<tr><td>Default text:</td><td><input type="text" name="text"></input></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+00:</td><td><input type="text" name="t0" /></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+15:</td><td><input type="text" name="t15"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+30:</td><td><input type="text" name="t30"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
+				<tr><td>Text h+45:</td><td><input type="text" name="t45"/></td><td><button class="undotext">Undo</button></td><td><button class="settext">Set</button></td></tr>
 				</table>
 				<input type="hidden" name="beacon" value="9">
 				</form>
@@ -197,10 +188,150 @@
 	<div id="tabs-3">
 	</div>
 </div>
+<button id="debugbutton">A debug button</button>
 
 <script>
-$( "#tabs" ).tabs();
-$( "#accordion" ).accordion();
+function checkMorseString(str)
+{
+	for(var i=0; i<str.length; i++)
+	{
+		if((str[i]>='0') && (str[i]<='9'))
+			continue;
+		if((str[i]>='a') && (str[i]<='z'))
+			continue;
+		if((str[i]>='A') && (str[i]<='Z'))
+			continue;
+		switch(str[i])
+		{
+		case '=':
+		case '?':
+		case '/':
+		case '.':
+		case ',':
+		case ' ':
+			continue;
+		}
+		if(str[i]=='$')
+		{
+			i++;
+			if(i==str.length)
+				return false;
+			if(str[i]=='P')
+			{
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$P"
+
+				if((str[i]>='0') && (str[i]<='3'))
+					continue;
+				else
+					return false; // Error: Power mode not 0-3
+			}
+			else if(str[i]=='A')
+			{
+				var channel = 0;
+				// WIP
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$A"
+
+				if((str[i]>='0') && (str[i]<='9'))
+					channel = str[i] - '0';
+				else
+					return false; // Error: not a digit
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$An" (n:0-9)
+
+				if((str[i]>='0') && (str[i]<='9'))
+					channel = channel * 10 + (str[i] - '0');  
+				else
+					return false; // Error: not a digit
+
+				if(channel > 15)
+					return false; // Error: channel is not in range (00-15)
+			}
+			else if(str[i]=='T')
+			{
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$T"
+
+				if((str[i]>='0') && (str[i]<='7'))
+					continue;
+				else
+					return false; // Error: Temperature sensor not 0-7
+			}
+			else if(str[i]=='+')
+			{
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$+"
+
+				if((str[i]>='1') && (str[i]<='9'))
+					continue;
+				else
+					return false; // Error: Delay not 1-9
+			}
+			else if(str[i]=='-')
+			{
+				i++;
+				if(i==str.length)
+					return false; // Error: string ends with "$-"
+
+				if((str[i]>='1') && (str[i]<='9'))
+					continue;
+				else
+					return false; // Error: Delay not 1-9
+			}
+		}
+		return false;
+	}
+	return true;
+}
+
+$("#tabs").tabs();
+$("#accordion").accordion();
+$("[name=transmit]").button();
+$("[name=transmit]").prop("checked", false);
+$("[name=transmit]").click(
+	function()
+	{
+		var text = this.checked ? "On" : "Off";
+		$(this).button("option", "label", text);
+		$(this).parentsUntil("#accordion").last().prev().children("span").text(text);
+		console.log(text);
+	});
+$("#debugbutton").button();
+$("#debugbutton").click(
+	function()
+	{
+		$("[name=transmit]").each(
+			function(index)
+			{
+				var text = this.checked ? "On" : "Off";
+				console.log("Beacon " + index + ": " + text);
+			});
+		
+	});
+$("#b0").button();
+$("#b0").click(
+	function()
+	{
+		
+	});
+// Make the button height the same as a text input field. I get the height of the first text input (they should all be the same)
+$(".undotext").button({icons: {primary:"ui-icon-arrowreturnthick-1-w"},
+                         text:false});
+$(".settext").button({icons: {primary:"ui-icon-check"},
+                      text:false});
+
+$("[type=text]").on("input propertychange paste",
+		function()
+		{
+			console.log("input changed: '" + this.value + "' is " + (checkMorseString(this.value) ? "valid" : "NOT valid"));
+		});
+//				<button id="b0">Update beacon texts</button>
 </script>
 
 </body>
