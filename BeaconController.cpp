@@ -89,11 +89,11 @@ byte morseEncodeChar(char c)
 /* Encode a string into a coded morse message
    the user is responsible for the codedMessage memory space.
    Special codes:
-    $P0 - $P3: Inserts a "Set power mode" code into the output.
-    $A00 - $A15: Inserts the current value of the analog channel into the message (at encoding time, not transmit time!)
-    $T0 - T7: Inserts the current temperature into the message (at encoding time)
-    $+1 - $+9: insert delay with CARRIER ON
-    $-1 - $-9: insert delay with CARRIER OFF
+    $P0  ... $P3: Inserts a "Set power mode" code into the output.
+    $A00 ... $A15: Inserts the current value of the analog channel into the message (at encoding time, not transmit time!)
+    $T0 ... T7: Inserts the current temperature into the message (at encoding time)
+    $+1 ... $+9: insert delay with CARRIER ON
+    $-1 ... $-9: insert delay with CARRIER OFF
 
    Parameters:
     codedMessage: output of the encoder
@@ -114,6 +114,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
     if(str[i]=='$')
     {
       i++;
+      /* Parsing a "set power mode" code ($P0 ... $P3) */ 
       if(str[i]=='P')
       {
         i++;
@@ -134,6 +135,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           return false;
         }
       }
+      /* Parsing an "insert analog channel" code ($A00 ... $A15) */ 
       else if(str[i]=='A')
       {
         int channel=0;
@@ -160,6 +162,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           return false;
         }
       }
+      /* Parsing an "insert temperature" code ($T0 ... $T7) */ 
       else if(str[i]=='T')
       {
         int channel=0;
@@ -175,6 +178,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           return false;
         }
       }
+      /* Parsing an "insert delay with CARRIER ON" code ($+1 ... $+9) */
       else if(str[i]=='+')
       {
         i++;
@@ -195,6 +199,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           return false;
         }
       }
+      /* Parsing an "insert delay with CARRIER OFF" code ($-1 ... $-9) */
       else if(str[i]=='-')
       {
         i++;
@@ -462,6 +467,7 @@ void Beacon::tick()
     }
   }
 }
+
 boolean Beacon::isDone()
 {
   return done && (nextMsg==0);
