@@ -148,6 +148,7 @@ void readTemperatureSensor(char *dest, int channel)
         t -= tens * 10;
       }
       dest[i++] = '0' + t;
+      dest[i++] = 'C';
       dest[i] = 0;
     }
   }
