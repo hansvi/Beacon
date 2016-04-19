@@ -9,3 +9,5 @@ Put this directory in the Arduino folder and start the IDE. Open the Beacon sket
 
 ## Links
 * Github: https://github.com/hansvi/Beacon
+* OneWire library: http://playground.arduino.cc/Learning/OneWire
+* Dallas Temperature sensor library: http://milesburton.com/Main_Page?title=Dallas_Temperature_Control_Library
