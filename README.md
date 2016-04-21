@@ -2,7 +2,7 @@
 CW Beacon control software for Arduino
 
 ## Dependencies
-This software depends on the OneWire and dallas-temperature-control libraries. Install them beforehand in the libraries folder of your Arduino sketches folder.
+This software depends on the Time, OneWire and dallas-temperature-control libraries. Install them beforehand in the libraries folder of your Arduino sketches folder (see links).
 
 ## Installation
 Put this directory in the Arduino folder and start the IDE. Open the Beacon sketch, select the Arduino Mega board and upload!
@@ -11,3 +11,5 @@ Put this directory in the Arduino folder and start the IDE. Open the Beacon sket
 * Github: https://github.com/hansvi/Beacon
 * OneWire library: http://playground.arduino.cc/Learning/OneWire
 * Dallas Temperature sensor library: http://milesburton.com/Main_Page?title=Dallas_Temperature_Control_Library
+* Time library (tested with v1.5): http://www.pjrc.com/teensy/td_libs_Time.html
+

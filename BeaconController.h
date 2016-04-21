@@ -30,7 +30,7 @@ class Beacon
   byte offPause;
   
   boolean done;
-  
+  boolean enabled;
   
   void keyOn();                // Sets the normal output
   void keyOff();               // Sets the inverted output
@@ -45,6 +45,8 @@ class Beacon
   void tick();
   boolean isDone();
   void setNextMessage(byte *codedMessage);
+  void setEnabled(bool on); // Start/stop the beacon.
+  bool getEnabled();
 };
 
 #endif

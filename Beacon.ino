@@ -1,9 +1,14 @@
 #include "BeaconController.h"
 #include "Sensors.h"
+#include "Config.h"
+#include "ControlPanel.h"
 
 // These need to be included for the libraries to be compiled in - Arduino specific
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <SPI.h>
+#include <SD.h>
+#include <TimeLib.h>
 
 /* Example running 10 beacons simultaneously.
    If there is a problem with translating the texts to morse code,
@@ -12,16 +17,12 @@
 
 // Pin 4 is SD CS
 // Pin 10 is Eth CS
+// PIN 11 is SPI (Eth, SD)
 // PIN 12 is SPI (Eth, SD)
 // Pin 13 is SPI (Eth, SD)
 // Pin 2 is OneWire DS1820 Temperature sensors
 
-#define BEACON_COUNT 9
-#define BEACON_MESSAGE_LENGTH 44
-
-
 Beacon beacons[BEACON_COUNT];
-
 
 const byte beaconPins[BEACON_COUNT][4] = 
 {
@@ -36,6 +37,7 @@ const byte beaconPins[BEACON_COUNT][4] =
   {50,51,52,53}
 };
 
+/*
 const char* beaconTexts[BEACON_COUNT] =
 {
   "This is a test $-1",  // Beacon 0: Pin 9
@@ -47,9 +49,10 @@ const char* beaconTexts[BEACON_COUNT] =
   "$T0 $-1",   // Beacon 6: Pin 42
   "7  7  7 $-1",   // Beacon 7: Pin 46
   "8  8  8 $-1",    // Beacon 8: Pin 50
-};
+};*/
 
 byte beaconMessages[BEACON_COUNT][BEACON_MESSAGE_LENGTH];
+char textBuffer[BEACON_MESSAGE_LENGTH];
 
 void setup()
 {
@@ -58,7 +61,9 @@ void setup()
   for(int i=0; i<BEACON_COUNT; i++)
   {
     beacons[i].begin(beaconPins[i][0], beaconPins[i][1], beaconPins[i][2], beaconPins[i][3]);
-    if(morseEncodeMessage(beaconMessages[i], beaconTexts[i], BEACON_MESSAGE_LENGTH)==false)
+    textBuffer[0] = 0;
+    getDefaultMessage(i, textBuffer, BEACON_MESSAGE_LENGTH);
+    if(morseEncodeMessage(beaconMessages[i], textBuffer, BEACON_MESSAGE_LENGTH)==false)
     {
       Serial.print("Error parsing text for beacon nr ");
       Serial.print(i);
@@ -107,7 +112,8 @@ void loop()
   {
     if(beacons[i].isDone())
     {
-      if(morseEncodeMessage(beaconMessages[i], beaconTexts[i], BEACON_MESSAGE_LENGTH)==false)
+      getCurrentMessage(i, textBuffer, BEACON_MESSAGE_LENGTH);
+      if(morseEncodeMessage(beaconMessages[i], textBuffer, BEACON_MESSAGE_LENGTH)==false)
       {
         Serial.print("Error parsing text for beacon nr ");
         Serial.print(i);

@@ -369,6 +369,7 @@ void Beacon::begin(int normalPin, int invPin, int modePin0, int modePin1)
   this->modePin0 = modePin0;
   this->modePin1 = modePin1;
   done = true;
+  enabled = true;
   nextMsg = 0;
   pinMode(normalPin, OUTPUT);
   pinMode(invPin, OUTPUT);
@@ -380,6 +381,7 @@ void Beacon::begin(int normalPin, int invPin, int modePin0, int modePin1)
 
 void Beacon::end()
 {
+  setEnabled(false);
   normalPin = invPin = modePin0 = modePin1 = -1;
   done = true;
   nextMsg = 0;
@@ -387,6 +389,10 @@ void Beacon::end()
 
 void Beacon::tick()
 {
+  if(!enabled)
+  {
+    return;
+  }
   if(done)
   {
     if(nextMsg)
@@ -525,11 +531,30 @@ void Beacon::tick()
 
 boolean Beacon::isDone()
 {
-  return done && (nextMsg==0);
+  return (enabled==false) || (done && (nextMsg==0));
 }
+
 void Beacon::setNextMessage(byte *codedMessage)
 {
   nextMsg = codedMessage;
 }
 
-
+bool Beacon::getEnabled()
+{
+  return enabled;
+}
+void Beacon::setEnabled(bool on)
+{
+  if(on)
+  {
+    enabled = true;
+  }
+  else
+  {
+    done = true; // Forget what we were sending
+    enabled = false;
+    // Turn off outputs
+    carrierOff();
+    powerMode(0);
+  }
+}

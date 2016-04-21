@@ -1,4 +1,5 @@
 #include "Sensors.h"
+#include "Config.h"
 #include <Arduino.h>
 
 #include <OneWire.h>
