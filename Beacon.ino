@@ -1,7 +1,10 @@
+// PSTR : https://lowpowerlab.com/forum/index.php?topic=1199.5;wap2
+
 #include "BeaconController.h"
 #include "Sensors.h"
 #include "Config.h"
 #include "ControlPanel.h"
+#include "WebServer.h"
 
 // These need to be included for the libraries to be compiled in - Arduino specific
 #include <OneWire.h>
@@ -9,8 +12,9 @@
 #include <SPI.h>
 #include <SD.h>
 #include <TimeLib.h>
+#include <Ethernet.h>
 
-/* Example running 10 beacons simultaneously.
+/* Example running 9 beacons simultaneously.
    If there is a problem with translating the texts to morse code,
    an error message will be printed on the serial port and the transmission will not start
 */
@@ -58,6 +62,8 @@ void setup()
 {
   Serial.begin(9600);
   sensorsInit();
+  controlPanelInit();
+  WebServerInit();
   for(int i=0; i<BEACON_COUNT; i++)
   {
     beacons[i].begin(beaconPins[i][0], beaconPins[i][1], beaconPins[i][2], beaconPins[i][3]);
@@ -65,7 +71,7 @@ void setup()
     getDefaultMessage(i, textBuffer, BEACON_MESSAGE_LENGTH);
     if(morseEncodeMessage(beaconMessages[i], textBuffer, BEACON_MESSAGE_LENGTH)==false)
     {
-      Serial.print("Error parsing text for beacon nr ");
+      Serial.print(F("Error parsing text for beacon nr "));
       Serial.print(i);
       Serial.println(":");
       Serial.println(morseGetError());
@@ -115,7 +121,7 @@ void loop()
       getCurrentMessage(i, textBuffer, BEACON_MESSAGE_LENGTH);
       if(morseEncodeMessage(beaconMessages[i], textBuffer, BEACON_MESSAGE_LENGTH)==false)
       {
-        Serial.print("Error parsing text for beacon nr ");
+        Serial.print(F("Error parsing text for beacon nr "));
         Serial.print(i);
         Serial.println(":");
         Serial.println(morseGetError());
@@ -130,5 +136,6 @@ void loop()
     }
   }
   sensorsTick();
+  WebServerTick();
   delay(20);
 }

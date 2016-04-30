@@ -8,7 +8,7 @@
 static bool runningState[BEACON_COUNT]; // true -> on, false -> off
 static byte lastSpecialMessage[BEACON_COUNT]; // 0=H00, 1=H15, 2=H30, 3=H45
 
-void configInit()
+void controlPanelInit()
 {
   File f;
   char filename[20];

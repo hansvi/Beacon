@@ -1,5 +1,6 @@
 #include "BeaconController.h"
 #include "Sensors.h"
+#include <avr/pgmspace.h>
 
 // About WPM:
 // There are multiple definitions about WPM speeds.
@@ -126,7 +127,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         {
           if(outPos>=maxBytes)
           {
-            sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+            sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
             return false;
           }
@@ -134,7 +135,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else
         {
-          sprintf(morseParseError, "Error parsing power mode at position %d (expecting 0-3)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing power mode at position %d (expecting 0-3)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -152,7 +153,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else if(str[i]!='0')
         {
-          sprintf(morseParseError, "Error parsing analog channel number at position %d (expecting 00-15)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing analog channel number at position %d (expecting 00-15)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -163,14 +164,14 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else
         {
-          sprintf(morseParseError, "Error parsing analog channel number at position %d (expecting 00-15)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing analog channel number at position %d (expecting 00-15)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
         // We parsed the channel nr. Check for worst case string size.
         if((outPos+maxAnalogStrSize(channel))>=maxBytes)
         {
-          sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+          sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -183,7 +184,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           char c = morseEncodeChar(codedMessage[outPos]);
           if(c == 0)
           {
-            sprintf(morseParseError, "Can not encode character '%c' at position %d", codedMessage[outPos], i);
+            sprintf_P(morseParseError, PSTR("Can not encode character '%c' at position %d"), codedMessage[outPos], i);
             codedMessage[0] = MORSE_END;
             return false;
           }
@@ -203,7 +204,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else
         {
-          sprintf(morseParseError, "Error parsing temperature sensor at position %d (expecting 0-7)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing temperature sensor at position %d (expecting 0-7)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -211,7 +212,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         // We parsed the channel number. Check worst case size
         if((outPos+maxTemperatureStrSize(channel))>=maxBytes)
         {
-          sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+          sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -222,7 +223,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           char c = morseEncodeChar(codedMessage[outPos]);
           if(c == 0)
           {
-            sprintf(morseParseError, "Can not encode character '%c' at position %d", codedMessage[outPos], i);
+            sprintf_P(morseParseError, PSTR("Can not encode character '%c' at position %d"), codedMessage[outPos], i);
             codedMessage[0] = MORSE_END;
             return false;
           }
@@ -239,7 +240,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         {
           if(outPos>=maxBytes)
           {
-            sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+            sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
             return false;
           }
@@ -247,7 +248,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else
         {
-          sprintf(morseParseError, "Error parsing delay at position %d (expecting 1-9)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing delay at position %d (expecting 1-9)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -262,7 +263,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         {
           if(outPos>=maxBytes)
           {
-            sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+            sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
             return false;
           }
@@ -270,14 +271,14 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         else
         {
-          sprintf(morseParseError, "Error parsing delay at position %d (expecting 1-9)", i);
+          sprintf_P(morseParseError, PSTR("Error parsing delay at position %d (expecting 1-9)"), i);
           codedMessage[0] = MORSE_END;
           return false;
         }
       }
       else
       {
-        sprintf(morseParseError, "Error parsing special code at position %d (expecting P, A, T, + or -)", i);
+        sprintf_P(morseParseError, PSTR("Error parsing special code at position %d (expecting P, A, T, + or -)"), i);
         codedMessage[0] = MORSE_END;
         return false;
       }
@@ -288,7 +289,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
       char c = morseEncodeChar(str[i]);
       if(c == 0)
       {
-        sprintf(morseParseError, "Can not encode character '%c' at position %d", str[i], i);
+        sprintf_P(morseParseError, PSTR("Can not encode character '%c' at position %d"), str[i], i);
         codedMessage[0] = MORSE_END;
         return false;
       }
@@ -296,7 +297,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
       {
         if(outPos>=maxBytes)
         {
-          sprintf(morseParseError, "output buffer too small (max. %d bytes)", maxBytes);
+          sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
           return false;
         }
@@ -321,7 +322,7 @@ void debugPrintMorse(const char *msg)
   {
     Serial.println((byte)(msg[i]), BIN);
   }
-  Serial.println("---END OF MESSAGE---");
+  Serial.println(F("---END OF MESSAGE---"));
 }
 
 /********************************************************************************************************\

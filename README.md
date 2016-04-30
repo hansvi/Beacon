@@ -13,3 +13,5 @@ Put this directory in the Arduino folder and start the IDE. Open the Beacon sket
 * Dallas Temperature sensor library: http://milesburton.com/Main_Page?title=Dallas_Temperature_Control_Library
 * Time library (tested with v1.5): http://www.pjrc.com/teensy/td_libs_Time.html
 
+## For future reference:
+* https://sites.google.com/site/astudyofentropy/project-definition/timer-jitter-entropy-sources/entropy-library - random numbers

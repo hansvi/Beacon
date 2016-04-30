@@ -1,7 +1,7 @@
 #ifndef CONTROLPANEL_H_
 #define CONTROLPANEL_H_
 
-void configInit();
+void controlPanelInit();
 
 bool isBeaconRunning(int index);
 void setBeaconRunning(int index, bool state);
