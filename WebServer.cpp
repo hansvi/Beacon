@@ -33,6 +33,7 @@ static void urldecode2(char *dst, const char *src);
 static const char *getMimeType(const char *filename);
 static bool httpRespond(EthernetClient &client);
 static void httpParseHeaderLine();
+static bool send404NotFound(EthernetClient &client, const char* filename);
 
 
 void WebServerInit()
@@ -249,15 +250,16 @@ static void sendSDFile(EthernetClient &client, const char *filename, bool try_gz
   }
   else
   {
+    send404NotFound(client, filename);
     // File not found
   }
 }
 
 static bool send404NotFound(EthernetClient &client, const char* filename)
 {
-  const char pre[] PROGMEM = "<html><header><title>404 File not found</title></header><body><h1>File not found</h1><p>Sorry the file ";
-  const char post[] PROGMEM = " was not found on the SD card</<p></body></html>";
-  int total = strlen_P(pre) + strlen_P(post) + strlen(filename);
+  const char *pre  = "<html><header><title>404 File not found</title></header><body><h1>File not found</h1><p>Sorry the file ";
+  const char *post  = " was not found on the SD card</<p></body></html>";
+  int total = strlen(pre) + strlen(post) + strlen(filename);
   
 /*    Serial.print("Could not open ");
     Serial.println(filename);
@@ -278,6 +280,7 @@ static bool send404NotFound(EthernetClient &client, const char* filename)
 
 static bool sendIndexHtm(EthernetClient &client)
 {
+  Serial.println("Sending index.htm");
   sendSDFile(client, "index.htm", HTTP_can_use_gzip);
   return true;
 }
@@ -373,6 +376,9 @@ WebPage rootpages[] =
 // false: close connection
 static bool httpRespond(EthernetClient &client)
 {
+  Serial.print("got request ");
+  Serial.println(HTTP_req_filename);
+  delay(1000);
   if(HTTP_is_post_request)
   {
     // Continue reading data in the post request.
@@ -382,7 +388,6 @@ static bool httpRespond(EthernetClient &client)
   else
   {
     // send web page
-    const char *mimetype = getMimeType(HTTP_req_filename);
     WebPage *page;
     for(page = rootpages; page->filename; page++)
     {
@@ -390,12 +395,13 @@ static bool httpRespond(EthernetClient &client)
       if(strcasecmp(page->filename, HTTP_req_filename)==0)
         break;
     }
-    if(page)
+    if(page->filename)
     {
       return page->handler(client);
     }
     else
     {
+      Serial.println("404 not found");
       return send404NotFound(client, HTTP_req_filename);
     }
   }

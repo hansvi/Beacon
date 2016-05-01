@@ -38,7 +38,7 @@ const byte beaconPins[BEACON_COUNT][4] =
   {38,39,40,41},
   {42,43,44,45},
   {46,47,48,49},
-  {50,51,52,53}
+  {50,51,52,52}
 };
 
 /*
@@ -61,9 +61,9 @@ char textBuffer[BEACON_MESSAGE_LENGTH];
 void setup()
 {
   Serial.begin(9600);
-  sensorsInit();
-  controlPanelInit();
   WebServerInit();
+  controlPanelInit();
+  sensorsInit();
   for(int i=0; i<BEACON_COUNT; i++)
   {
     beacons[i].begin(beaconPins[i][0], beaconPins[i][1], beaconPins[i][2], beaconPins[i][3]);

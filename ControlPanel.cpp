@@ -14,6 +14,7 @@ void controlPanelInit()
   char filename[20];
   byte firstMessage;
   pinMode(10, OUTPUT);
+  digitalWrite(10, HIGH);
 
   if (!SD.begin(4)) {
     Serial.println("SDCard initialization failed!");
