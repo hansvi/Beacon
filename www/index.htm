@@ -31,15 +31,35 @@
 	{
 		color: red;
 	}
+	.readings_table
+	{
+		display:left;
+	}
+	.readings_table tr
+	{
+		background-color: #CCC;
+		border: on;
+		border-width: 1px;
+		padding: 6px;
+		margin: 5px;
+	}
+	.readings_table td
+	{
+		background-color: #0CC;
+		border: on;
+		border-width: 1px;
+		margin: 5px;
+		padding: 5px;
+	}
 	</style>
 </head>
 <body onload="GetArduinoIO()">
 <h1>Arduino Beacon Controller</h1>
 <div id="tabs">
 	<ul>
-		<li><a href="#tabs-1">Configuration</a></li>
-		<li><a href="#tabs-2">Status</a></li>
-		<li><a href="#tabs-3">Logs</a></li>
+		<li id="showtabs-1"><a href="#tabs-1">Configuration</a></li>
+		<li id="showtabs-2"><a href="#tabs-2">Status</a></li>
+		<li id="showtabs-3"><a href="#tabs-3">Logs</a></li>
 	</ul>
 	<div id="tabs-1">
 		<div id="accordion">
@@ -157,6 +177,34 @@
 	</div>
 
 	<div id="tabs-2">
+		<table class="readings_table">
+		<tr><td>T0</td><td>---</td></tr>
+		<tr><td>T1</td><td>---</td></tr>
+		<tr><td>T2</td><td>---</td></tr>
+		<tr><td>T3</td><td>---</td></tr>
+		<tr><td>T4</td><td>---</td></tr>
+		<tr><td>T5</td><td>---</td></tr>
+		<tr><td>T6</td><td>---</td></tr>
+		<tr><td>T7</td><td>---</td></tr>
+		</table>
+		<table class="readings_table">
+		<tr><td>A0</td><td>---</td></tr>
+		<tr><td>A1</td><td>---</td></tr>
+		<tr><td>A2</td><td>---</td></tr>
+		<tr><td>A3</td><td>---</td></tr>
+		<tr><td>A4</td><td>---</td></tr>
+		<tr><td>A5</td><td>---</td></tr>
+		<tr><td>A6</td><td>---</td></tr>
+		<tr><td>A7</td><td>---</td></tr>
+		<tr><td>A8</td><td>---</td></tr>
+		<tr><td>A9</td><td>---</td></tr>
+		<tr><td>A10</td><td>---</td></tr>
+		<tr><td>A11</td><td>---</td></tr>
+		<tr><td>A12</td><td>---</td></tr>
+		<tr><td>A13</td><td>---</td></tr>
+		<tr><td>A14</td><td>---</td></tr>
+		<tr><td>A15</td><td>---</td></tr>
+		</table>
 	</div>
 
 	<div id="tabs-3">
@@ -280,16 +328,28 @@ $("[name=transmit]").click(
 		console.log("beacon: " + beaconid +  "    state: " + text);
 	});
 
+$("#showtabs-2").click(
+	function()
+	{
+		console.log("Showing Status screen");
+	});
+
 $("#debugbutton").button();
 $("#debugbutton").click(
 	function()
 	{
-		$("[name=transmit]").each(
+		$().ajax("status.txt", "GET",
+		function(result)
+		{
+			console.log(result);
+		});
+/*		$("[name=transmit]").each(
 			function(index)
 			{
 				var text = this.checked ? "On" : "Off";
 				console.log("Beacon " + index + ": " + text);
 			});
+*/
 		
 	});
 // Make the button height the same as a text input field. I get the height of the first text input (they should all be the same)
