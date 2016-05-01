@@ -1,11 +1,12 @@
 #include "ControlPanel.h"
 #include "Config.h"
+#include "BeaconController.h"
 #include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
 #include <TimeLib.h>
 
-static bool runningState[BEACON_COUNT]; // true -> on, false -> off
+extern Beacon beacons[BEACON_COUNT];
 static byte lastSpecialMessage[BEACON_COUNT]; // 0=H00, 1=H15, 2=H30, 3=H45
 
 void controlPanelInit()
@@ -38,11 +39,11 @@ void controlPanelInit()
     sprintf(filename, "%d/ON", i);
     if(SD.exists(filename))
     {
-      runningState[i] = true;
+      beacons[i].setEnabled(true);
     }
     else
     {
-      runningState[i] = false;
+      beacons[i].setEnabled(false);
     }
   }
 }
@@ -51,7 +52,7 @@ bool isBeaconRunning(int index)
 {
   if((index>=0) && (index<BEACON_COUNT))
   {
-    return runningState[index];
+    return beacons[index].getEnabled();
   }
   return false;
 }
@@ -64,7 +65,7 @@ void setBeaconRunning(int index, bool state)
   if((index>=0) && (index<BEACON_COUNT))
   {
     sprintf(filename, "%d/ON", index);
-    runningState[index] = state;
+    beacons[index].setEnabled(state);
     if(state)
     {
       f = SD.open(filename, FILE_WRITE);
