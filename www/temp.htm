@@ -1,0 +1,54 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Analog values</title>
+</head>
+<body onload="getvalues()">
+<h1>Analog values</h1>
+<ul>
+<li>T0: <span id="t0">???</span></li>
+<li>T1: <span id="t1">???</span></li>
+<li>T2: <span id="t2">???</span></li>
+<li>T3: <span id="t3">???</span></li>
+<li>T4: <span id="t4">???</span></li>
+<li>T5: <span id="t5">???</span></li>
+<li>T6: <span id="t6">???</span></li>
+<li>T7: <span id="t7">???</span></li>
+</ul>
+
+<script>
+function getvalues()
+{
+  var xmlhttp = new XMLHttpRequest();
+  var url = "/temperature.txt";
+
+  xmlhttp.onreadystatechange=function()
+  {
+    if(xmlhttp.readyState == 4)
+    {
+      if(xmlhttp.status == 200)
+      {
+        runningstateresponse(xmlhttp.responseText);
+      }
+      setTimeout(getvalues, 1000); // Do it again!
+    }
+  }
+  xmlhttp.open("GET", url, true);
+  xmlhttp.send();
+}
+
+function runningstateresponse(response)
+{
+  var arr = JSON.parse(response);
+  var i;
+  for(i=0; i<8; i++)
+  {
+    var elem_id = "t" + i;
+    document.getElementById(elem_id).innerHTML = arr[i];
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Analog values</title>
+</head>
+<body onload="getvalues()">
+<h1>Analog values</h1>
+<ul>
+<li>A0: <span id="a0">???</span></li>
+<li>A1: <span id="a1">???</span></li>
+<li>A2: <span id="a2">???</span></li>
+<li>A3: <span id="a3">???</span></li>
+<li>A4: <span id="a4">???</span></li>
+<li>A5: <span id="a5">???</span></li>
+<li>A6: <span id="a6">???</span></li>
+<li>A7: <span id="a7">???</span></li>
+<li>A8: <span id="a8">???</span></li>
+<li>A9: <span id="a9">???</span></li>
+<li>A10: <span id="a10">???</span></li>
+<li>A11: <span id="a11">???</span></li>
+<li>A12: <span id="a12">???</span></li>
+<li>A13: <span id="a13">???</span></li>
+<li>A14: <span id="a14">???</span></li>
+<li>A15: <span id="a15">???</span></li>
+</ul>
+
+<script>
+function getvalues()
+{
+  var xmlhttp = new XMLHttpRequest();
+  var url = "/analog.txt";
+
+  xmlhttp.onreadystatechange=function()
+  {
+    if(xmlhttp.readyState == 4)
+    {
+      if(xmlhttp.status == 200)
+      {
+        runningstateresponse(xmlhttp.responseText);
+      }
+      setTimeout(getvalues, 1000); // Do it again!
+    }
+  }
+  xmlhttp.open("GET", url, true);
+  xmlhttp.send();
+}
+
+function runningstateresponse(response)
+{
+  var arr = JSON.parse(response);
+  var i;
+  for(i=0; i<16; i++)
+  {
+    var elem_id = "a" + i;
+    document.getElementById(elem_id).innerHTML = arr[i];
+  }
+}
+</script>
+</body>
+</html>

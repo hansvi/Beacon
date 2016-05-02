@@ -4,6 +4,7 @@
 #include <SD.h>
 #include "Config.h"
 #include "Sensors.h"
+#include "ControlPanel.h"
 #include <avr/pgmspace.h>
 
 static byte mac[] = {MAC_ADDRESS};
@@ -217,7 +218,7 @@ static void sendDynamicHeader(char *frame_buf, EthernetClient &client, const cha
 static void sendStaticHeader(char *frame_buf, EthernetClient &client, const char* mimetype, unsigned long contentsize, bool gzipped)
 {
   // FIXME: Theoretical risk of buffer overflow
-  sprintf_P(frame_buf, PSTR("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %lu\r\nContent-Encoding: gzip\r\n%s\r\n"), mimetype, contentsize,(gzipped? "Content-Encoding: gzip\r\n" : ""));
+  sprintf_P(frame_buf, PSTR("HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %lu\r\n%s\r\n"), mimetype, contentsize,(gzipped? "Content-Encoding: gzip\r\n" : ""));
   client.write(frame_buf, strlen(frame_buf));
 }
 
@@ -261,11 +262,6 @@ static bool send404NotFound(EthernetClient &client, const char* filename)
   const char *post  = " was not found on the SD card</<p></body></html>";
   int total = strlen(pre) + strlen(post) + strlen(filename);
   
-/*    Serial.print("Could not open ");
-    Serial.println(filename);
-    Serial.print("Length:");
-    Serial.println(strlen(frame_buf));
-*/
     client.println(F("HTTP/1.1 404 Not found"));
     client.println(F("Content-Type: text/html"));
     client.print(F("Content-Length: "));
@@ -281,26 +277,33 @@ static bool send404NotFound(EthernetClient &client, const char* filename)
 static bool sendIndexHtm(EthernetClient &client)
 {
   Serial.println("Sending index.htm");
-  sendSDFile(client, "index.htm", HTTP_can_use_gzip);
-  return true;
+//  sendSDFile(client, "index.htm", HTTP_can_use_gzip);
+  sendSDFile(client, "index.htm", false);
+  return false;
 }
 
 static bool sendAnalogHtm(EthernetClient &client)
 {
   sendSDFile(client, "analog.htm", HTTP_can_use_gzip);
-  return true;
+  return false;
 }
 static bool sendTemperatureHtm(EthernetClient &client)
 {
   sendSDFile(client, "temp.htm", HTTP_can_use_gzip);
   return true;
 }
+static bool sendFavIcon(EthernetClient &client)
+{
+  sendSDFile(client, "favicon.ico", HTTP_can_use_gzip);
+  return true;
+}
 static bool sendAnalogJSON(EthernetClient &client)
 {
   char frame_buf[250];
   sendDynamicHeader(frame_buf, client, "application/json"); 
-  strcpy(frame_buf, "{\"values\": [\"");
-  char *ptr = &frame_buf[12];
+  char *ptr = frame_buf;
+  *ptr++ = '[';
+  *ptr++ = '"';
   for(int i=0; i<NUM_ANALOG_CHANNELS; i++)
   {
     if(i>0)
@@ -316,20 +319,21 @@ static bool sendAnalogJSON(EthernetClient &client)
     *ptr++ = '"';
   }
   *ptr++ = ']';
-  *ptr++ = '}';
   *ptr = 0;
   
   client.print(frame_buf);
   return false;
 }
 
-static bool sendtemperatureJSON(EthernetClient &client)
+static bool sendTemperatureJSON(EthernetClient &client)
 {
   char frame_buf[250];
   // http://stackoverflow.com/questions/477816/what-is-the-correct-json-content-type
   sendDynamicHeader(frame_buf, client, "application/json"); 
-  strcpy(frame_buf, "{\"values\": [\"");
-  char *ptr = &frame_buf[12];
+  char *ptr = frame_buf;
+  *ptr++='[';
+  *ptr++='"';
+  
   for(int i=0; i<NUM_TEMPERATURE_CHANNELS; i++)
   {
     if(i>0)
@@ -337,21 +341,46 @@ static bool sendtemperatureJSON(EthernetClient &client)
       *ptr++ = ',';
       *ptr++ = '"';
     }
-    readAnalogSensor(ptr, i);
-    while(*ptr) 
+    readTemperatureSensor(ptr, i);
+    while(*ptr)
     {
       ptr++;
     }
     *ptr++ = '"';
-    i++;
   }
   *ptr++ = ']';
-  *ptr++ = '}';
   *ptr = 0;
   client.print(frame_buf);
   return false;
 }
 
+bool sendRunningJSON(EthernetClient &client)
+{
+  char frame_buf[200];
+  // http://stackoverflow.com/questions/477816/what-is-the-correct-json-content-type
+  sendDynamicHeader(frame_buf, client, "application/json"); 
+  char *ptr = frame_buf;
+  *ptr++='[';
+  for(int i=0; i<BEACON_COUNT; i++)
+  {
+    if(i>0)
+    {
+      *ptr++ = ',';
+    }
+    if(isBeaconRunning(i))
+    {
+      *ptr++ = '1';
+    }
+    else
+    {
+      *ptr++='0';
+    }
+  }
+  *ptr++ = ']';
+  *ptr = 0;
+  client.print(frame_buf);
+  return false;
+}
 
 struct WebPage
 {
@@ -366,7 +395,8 @@ WebPage rootpages[] =
   {"/analog.htm", sendAnalogHtm},
   {"/temperature.htm", sendTemperatureHtm},
   {"/analog.txt", sendAnalogJSON},
-  {"/temperature.txt", sendtemperatureJSON},
+  {"/temperature.txt", sendTemperatureJSON},
+  {"/running.txt", sendRunningJSON},
   {NULL, NULL}
 };
 
