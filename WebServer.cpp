@@ -15,7 +15,7 @@ static int HTTP_req_index;                // index into HTTP_req buffer
 static boolean HTTP_can_use_gzip;         // Send the gzip-compressed version if browser supports it
 static boolean HTTP_is_post_request;      // Config updates are sent with HTTP POST requests
 static char HTTP_req_filename[HTTP_REQ_FILENAME_SZ];  // The filename of the URL
-
+static int HTTP_req_content_length;
 
 /*
  static files are stored on the SD card under the /www/ directory.
@@ -52,10 +52,11 @@ void WebServerTick()
   if (client)
   {
     Serial.println("Client connected");
-
+    HTTP_req_index = 0;
     HTTP_can_use_gzip = false;
     HTTP_is_post_request = false;
     HTTP_req_filename[0] = 0;
+    HTTP_req_content_length = 0;
     
     // got client?
     while (client.connected())
@@ -85,15 +86,14 @@ void WebServerTick()
             HTTP_can_use_gzip = false;
             HTTP_is_post_request = false;
             HTTP_req_filename[0] = 0;
+            HTTP_req_content_length = 0;
             if(!keepalive)
               break;
-//            break;
           }
           else
           {
             httpParseHeaderLine();
           }
-
           HTTP_req_index = 0;  // reset position to receive next line
         }
       }
@@ -168,6 +168,8 @@ static const char * getMimeType(const char *filename)
 // Parses one line from the http header 
 static void httpParseHeaderLine()
 {
+  Serial.print("> ");
+  Serial.print(HTTP_req);
   if(strncasecmp(HTTP_req, "GET ", 4)==0)
   {
     // HTTP_req_index is equal to the string length. We need to remove the trailing " HTTP/1.1" though (9 characters)
@@ -204,6 +206,10 @@ static void httpParseHeaderLine()
     {
       HTTP_can_use_gzip = true;
     }
+  }
+  else if(strncasecmp(HTTP_req, "Content-Length: ", 16) == 0)
+  {
+    HTTP_req_content_length = atoi(HTTP_req+16);
   }
 }
 
@@ -382,12 +388,20 @@ bool sendRunningJSON(EthernetClient &client)
   return false;
 }
 
+// TODO Could add the beacon nr to all pages and get rid of code duplication
 struct WebPage
 {
   char* filename;
   bool (*handler)(EthernetClient &client);
 };
 
+struct BeaconPage
+{
+  char* filename;
+  bool (*handler)(EthernetClient &client, int beacon_nr);
+};
+
+// Pages at the root of the website, ie http://a.b.c.d/file.ext
 WebPage rootpages[] =
 {
   {"/index.htm", sendIndexHtm},
@@ -400,6 +414,140 @@ WebPage rootpages[] =
   {NULL, NULL}
 };
 
+// WIP
+// TODO: Make messages enable setting in controller
+static void parsePostParam(char *text, int beacon_nr)
+{
+  if(strncasecmp(text, "enabled=", 8) == 0)
+  {
+    Serial.println("Enable beacon");
+    // enable sending this?
+  }
+  else if(strncasecmp(text, "msg=", 4) == 0)
+  {
+    Serial.print("Message = \"");
+    Serial.print(text+4);
+    Serial.println('"');
+    // new beacon text
+  }
+  else if(strncasecmp(text, "textid=", 7) == 0)
+  {
+    Serial.print("id: ");
+    Serial.println(text+7);
+    // which message are we talking about
+  }
+}
+
+static void sendMessageForm(char *frame_buf, EthernetClient &client, const char *textid, const char *title, const char *content)
+{
+  sprintf_P(frame_buf, PSTR("<form action=\"index.htm\" method=\"POST\">%s:<br/>\r\n"), title);
+  client.write(frame_buf, strlen(frame_buf));
+  sprintf_P(frame_buf, PSTR("<input type=\"checkbox\" name=\"enabled\"> Enabled<br/>"));
+  client.write(frame_buf, strlen(frame_buf));
+  sprintf_P(frame_buf, PSTR("<input type=\"text\" name=\"msg\" value=\"%s\">\r\n"), content);
+  client.write(frame_buf, strlen(frame_buf));
+  sprintf_P(frame_buf, PSTR("<input type=\"hidden\" name=\"textid\" value=\"%s\"><input type=\"submit\" value=\"Update\"></form>\r\n"), textid);
+  client.write(frame_buf, strlen(frame_buf));
+}
+
+static void sendBeaconSettingsPage(char *frame_buf, EthernetClient &client, int beacon_nr)
+{
+  sendDynamicHeader(frame_buf, client, "text/html");
+  const char *pre  = "<html><header><title>Beacon Settings</title></header><body><h1>";
+  const char *post  = "</body></html>";
+  client.write(pre, strlen(pre));
+  sprintf(frame_buf, "<h1>beacon number %d</h1>", beacon_nr);
+  client.write(frame_buf, strlen(frame_buf));
+  
+  sendMessageForm(frame_buf, client, "def", "Default text", "");
+  sendMessageForm(frame_buf, client, "H00", "Message at hh:00", "");
+  sendMessageForm(frame_buf, client, "H15", "Message at hh:15", "");
+  sendMessageForm(frame_buf, client, "H30", "Message at hh:30", "");
+  sendMessageForm(frame_buf, client, "H45", "Message at hh:45", "");
+  client.write(post, strlen(post));
+}
+
+static bool processPostRequest(EthernetClient &client, int beacon_nr)
+{
+  int i=0;
+  char frame_buf[250];
+  char new_msg[BEACON_MESSAGE_LENGTH];
+  Serial.print("content-length ");
+  Serial.print(HTTP_req_content_length);
+  while(client.available() && HTTP_req_content_length-- && (i<249))
+  {
+    char c = client.read(); // read 1 byte (character) from client
+    if(c=='&')
+    {
+      frame_buf[i]=0;
+      parsePostParam(frame_buf, beacon_nr);
+      i=0;
+    }
+    else
+    {
+      frame_buf[i++]=c;
+    }
+  }
+  if(i)
+  {
+    frame_buf[i]=0;
+    parsePostParam(frame_buf, beacon_nr);
+  }
+  // The POST request has been parsed. Let's do a sanity check, update the configuration and send back the page.
+  sendBeaconSettingsPage(frame_buf, client, beacon_nr);
+  return false;
+}
+
+static bool sendBeaconIndexHtm(EthernetClient & client, int beacon_nr)
+{
+  sendSDFile(client, "beacon.htm", HTTP_can_use_gzip);
+  return true;
+}
+
+static bool setDefHandler(EthernetClient &client, int beacon_nr)
+{
+  processPostRequest(client, beacon_nr);
+  return false;
+}
+
+static bool setH00Handler(EthernetClient &client, int beacon_nr)
+{
+  processPostRequest(client, beacon_nr);
+  return false;
+}
+
+static bool setH15Handler(EthernetClient &client, int beacon_nr)
+{
+  processPostRequest(client, beacon_nr);
+  return false;
+}
+
+static bool setH30Handler(EthernetClient &client, int beacon_nr)
+{
+  processPostRequest(client, beacon_nr);
+  return false;
+}
+
+static bool setH45Handler(EthernetClient &client, int beacon_nr)
+{
+  processPostRequest(client, beacon_nr);
+  return false;
+}
+
+// Beacon-specific pages, ie http://a.b.c.d/<beacon-nr>/file.ext
+BeaconPage beaconpages[] =
+{
+  {"/index.htm", processPostRequest},
+  {"/", sendBeaconIndexHtm},
+  {"/setdef.htm", setDefHandler},
+  {"/seth00.htm", setH00Handler},
+  {"/seth15.htm", setH15Handler},
+  {"/seth30.htm", setH30Handler},
+  {"/seth45.htm", setH45Handler},
+  {NULL, NULL}
+};
+
+
 // Send back the requested page
 // Return value:
 // true: can keep connection open
@@ -408,31 +556,49 @@ static bool httpRespond(EthernetClient &client)
 {
   Serial.print("got request ");
   Serial.println(HTTP_req_filename);
-  delay(1000);
-  if(HTTP_is_post_request)
+  if(1)
   {
-    // Continue reading data in the post request.
-    // TODO NYI
-    return false;
-  }
-  else
-  {
-    // send web page
-    WebPage *page;
-    for(page = rootpages; page->filename; page++)
+    if( (HTTP_req_filename[0]=='/') &&
+        (HTTP_req_filename[1]>='0') && (HTTP_req_filename[1]<='9') &&
+        (HTTP_req_filename[2]=='/') )
     {
-      // can be optimized by sorting/binary search
-      if(strcasecmp(page->filename, HTTP_req_filename)==0)
-        break;
-    }
-    if(page->filename)
-    {
-      return page->handler(client);
+      BeaconPage *page;
+      for(page=beaconpages; page->filename; page++)
+      {
+        if(strcasecmp(page->filename, HTTP_req_filename+2)==0)
+        {
+          break;
+        }
+      }
+      if(page->handler)
+      {
+        return page->handler(client, HTTP_req_filename[1]-'0');
+      }
+      else
+      {
+        Serial.println("404 not found");
+        return send404NotFound(client, HTTP_req_filename);
+      }
     }
     else
     {
-      Serial.println("404 not found");
-      return send404NotFound(client, HTTP_req_filename);
+      // send web page
+      WebPage *page;
+      for(page = rootpages; page->filename; page++)
+      {
+        // can be optimized by sorting/binary search
+        if(strcasecmp(page->filename, HTTP_req_filename)==0)
+          break;
+      }
+      if(page->handler)
+      {
+        return page->handler(client);
+      }
+      else
+      {
+        Serial.println("404 not found");
+        return send404NotFound(client, HTTP_req_filename);
+      }
     }
   }
 }
