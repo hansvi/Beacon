@@ -310,11 +310,12 @@ static bool sendTemperatureHtm(EthernetClient &client)
   sendSDFile(client, "temp.htm", HTTP_can_use_gzip);
   return true;
 }
-static bool sendFavIcon(EthernetClient &client)
+static bool sendFavicon(EthernetClient &client)
 {
   sendSDFile(client, "favicon.ico", HTTP_can_use_gzip);
   return true;
 }
+
 static bool sendAnalogJSON(EthernetClient &client)
 {
   char frame_buf[250];
@@ -423,6 +424,7 @@ WebPage rootpages[] =
   {"/analog.txt", sendAnalogJSON},
   {"/temperature.txt", sendTemperatureJSON},
   {"/running.txt", sendRunningJSON},
+  {"/favicon.ico", sendFavicon},
   {NULL, NULL}
 };
 // TODO: /favicon.ico
