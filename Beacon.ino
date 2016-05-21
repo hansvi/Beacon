@@ -68,7 +68,7 @@ void setup()
   {
     beacons[i].begin(beaconPins[i][0], beaconPins[i][1], beaconPins[i][2], beaconPins[i][3]);
     textBuffer[0] = 0;
-    getDefaultMessage(i, textBuffer, BEACON_MESSAGE_LENGTH);
+    getBeaconMessage(i, BEACON_DEFMSG, textBuffer, BEACON_MESSAGE_LENGTH);
     if(morseEncodeMessage(beaconMessages[i], textBuffer, BEACON_MESSAGE_LENGTH)==false)
     {
       Serial.print(F("Error parsing text for beacon nr "));

@@ -30,6 +30,13 @@ static int HTTP_req_content_length;
  /sensors.txt  - JSON formatted 
 */
 
+struct BeaconSettings
+{
+  bool enabled;
+  char text[BEACON_MESSAGE_LENGTH];
+  int textid;
+};
+
 static void urldecode2(char *dst, const char *src);
 static const char *getMimeType(const char *filename);
 static bool httpRespond(EthernetClient &client);
@@ -130,7 +137,12 @@ static void urldecode2(char *dst, const char *src)
         b -= '0';
       *dst++ = 16*a+b;
       src+=3;
-    } 
+    }
+    else if(*src=='+') // modified this, for parsing POST requests
+    {
+      *dst++= ' ';
+      src++;
+    }
     else {
       *dst++ = *src++;
     }
@@ -413,36 +425,63 @@ WebPage rootpages[] =
   {"/running.txt", sendRunningJSON},
   {NULL, NULL}
 };
+// TODO: /favicon.ico
 
 // WIP
 // TODO: Make messages enable setting in controller
-static void parsePostParam(char *text, int beacon_nr)
+// TODO: urldecode & verify incoming data.
+static void parsePostParam(char *text, int beacon_nr, BeaconSettings *settings)
 {
   if(strncasecmp(text, "enabled=", 8) == 0)
   {
     Serial.println("Enable beacon");
+    settings->enabled = true;
     // enable sending this?
   }
   else if(strncasecmp(text, "msg=", 4) == 0)
   {
-    Serial.print("Message = \"");
-    Serial.print(text+4);
-    Serial.println('"');
-    // new beacon text
+    if(strlen(text+4) < BEACON_MESSAGE_LENGTH)
+    {
+      urldecode2(settings->text, text+4);
+      Serial.print("Message = \"");
+      Serial.print(text+4);
+      Serial.println('"');
+      // new beacon text
+    }
   }
   else if(strncasecmp(text, "textid=", 7) == 0)
   {
-    Serial.print("id: ");
-    Serial.println(text+7);
+    if(strncasecmp(text+7, "def", 3)==0)
+    {
+      settings->textid = 4;
+    }
+    else if(strncasecmp(text+7, "H00", 3)==0)
+    {
+      settings->textid = 0;
+    }
+    else if(strncasecmp(text+7, "H15", 3)==0)
+    {
+      settings->textid = 1;
+    }
+    else if(strncasecmp(text+7, "H30", 3)==0)
+    {
+      settings->textid = 2;
+    }
+    else if(strncasecmp(text+7, "H45", 3)==0)
+    {
+      settings->textid = 3;
+    }
+//    Serial.print("id: ");
+//    Serial.println(text+7);
     // which message are we talking about
   }
 }
 
-static void sendMessageForm(char *frame_buf, EthernetClient &client, const char *textid, const char *title, const char *content)
+static void sendMessageForm(char *frame_buf, EthernetClient &client, const char *textid, const char *title, const char *content, bool enabled)
 {
   sprintf_P(frame_buf, PSTR("<form action=\"index.htm\" method=\"POST\">%s:<br/>\r\n"), title);
   client.write(frame_buf, strlen(frame_buf));
-  sprintf_P(frame_buf, PSTR("<input type=\"checkbox\" name=\"enabled\"> Enabled<br/>"));
+  sprintf_P(frame_buf, PSTR("<input type=\"checkbox\" name=\"enabled\" %s> Enabled<br/>"), (enabled ? " checked" : ""));
   client.write(frame_buf, strlen(frame_buf));
   sprintf_P(frame_buf, PSTR("<input type=\"text\" name=\"msg\" value=\"%s\">\r\n"), content);
   client.write(frame_buf, strlen(frame_buf));
@@ -452,6 +491,7 @@ static void sendMessageForm(char *frame_buf, EthernetClient &client, const char 
 
 static void sendBeaconSettingsPage(char *frame_buf, EthernetClient &client, int beacon_nr)
 {
+  char beacon_text[BEACON_MESSAGE_LENGTH];
   sendDynamicHeader(frame_buf, client, "text/html");
   const char *pre  = "<html><header><title>Beacon Settings</title></header><body><h1>";
   const char *post  = "</body></html>";
@@ -459,11 +499,21 @@ static void sendBeaconSettingsPage(char *frame_buf, EthernetClient &client, int 
   sprintf(frame_buf, "<h1>beacon number %d</h1>", beacon_nr);
   client.write(frame_buf, strlen(frame_buf));
   
-  sendMessageForm(frame_buf, client, "def", "Default text", "");
-  sendMessageForm(frame_buf, client, "H00", "Message at hh:00", "");
-  sendMessageForm(frame_buf, client, "H15", "Message at hh:15", "");
-  sendMessageForm(frame_buf, client, "H30", "Message at hh:30", "");
-  sendMessageForm(frame_buf, client, "H45", "Message at hh:45", "");
+  getBeaconMessage(beacon_nr, BEACON_DEFMSG, beacon_text, BEACON_MESSAGE_LENGTH);
+  sendMessageForm(frame_buf, client, "def", "Default text", beacon_text, isBeaconMessageEnabled(beacon_nr, BEACON_DEFMSG));
+
+  getBeaconMessage(beacon_nr, BEACON_H00MSG, beacon_text, BEACON_MESSAGE_LENGTH);
+  sendMessageForm(frame_buf, client, "H00", "Message at hh:00", beacon_text, isBeaconMessageEnabled(beacon_nr, BEACON_H00MSG));
+
+  getBeaconMessage(beacon_nr, BEACON_H15MSG, beacon_text, BEACON_MESSAGE_LENGTH);
+  sendMessageForm(frame_buf, client, "H15", "Message at hh:15", beacon_text, isBeaconMessageEnabled(beacon_nr, BEACON_H15MSG));
+  
+  getBeaconMessage(beacon_nr, BEACON_H30MSG, beacon_text, BEACON_MESSAGE_LENGTH);
+  sendMessageForm(frame_buf, client, "H30", "Message at hh:30", beacon_text, isBeaconMessageEnabled(beacon_nr, BEACON_H00MSG));
+
+  getBeaconMessage(beacon_nr, BEACON_H45MSG, beacon_text, BEACON_MESSAGE_LENGTH);
+  sendMessageForm(frame_buf, client, "H45", "Message at hh:45", beacon_text, isBeaconMessageEnabled(beacon_nr, BEACON_H00MSG));
+
   client.write(post, strlen(post));
 }
 
@@ -471,6 +521,10 @@ static bool processPostRequest(EthernetClient &client, int beacon_nr)
 {
   int i=0;
   char frame_buf[250];
+  struct BeaconSettings settings;
+  settings.enabled = false;
+  settings.text[0] = 0;
+  settings.textid = -1;
   char new_msg[BEACON_MESSAGE_LENGTH];
   Serial.print("content-length ");
   Serial.print(HTTP_req_content_length);
@@ -480,7 +534,7 @@ static bool processPostRequest(EthernetClient &client, int beacon_nr)
     if(c=='&')
     {
       frame_buf[i]=0;
-      parsePostParam(frame_buf, beacon_nr);
+      parsePostParam(frame_buf, beacon_nr, &settings);
       i=0;
     }
     else
@@ -491,7 +545,12 @@ static bool processPostRequest(EthernetClient &client, int beacon_nr)
   if(i)
   {
     frame_buf[i]=0;
-    parsePostParam(frame_buf, beacon_nr);
+    parsePostParam(frame_buf, beacon_nr, &settings);
+  }
+  
+  if((settings.textid>=0) && (settings.textid<5))
+  {
+    setBeaconMessage(beacon_nr, settings.textid, settings.text);
   }
   // The POST request has been parsed. Let's do a sanity check, update the configuration and send back the page.
   sendBeaconSettingsPage(frame_buf, client, beacon_nr);

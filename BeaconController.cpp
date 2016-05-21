@@ -78,6 +78,10 @@ byte morseEncodeChar(char c)
       return B10010101;
     case ',':  // --..--
       return B10110011;
+    case '-': // -....-
+      return B10100001;
+    case '+': // .-.-.
+      return B1001010;
     case 0:
       return MORSE_END;
     case ' ':

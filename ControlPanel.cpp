@@ -5,9 +5,12 @@
 #include <SPI.h>
 #include <SD.h>
 #include <TimeLib.h>
+#include <assert.h>
 
 extern Beacon beacons[BEACON_COUNT];
 static byte lastSpecialMessage[BEACON_COUNT]; // 0=H00, 1=H15, 2=H30, 3=H45
+
+static const char* msg_filenames[5] = { "H00", "H15", "H30", "H45", "DEF" };
 
 void controlPanelInit()
 {
@@ -48,24 +51,24 @@ void controlPanelInit()
   }
 }
 
-bool isBeaconRunning(int index)
+bool isBeaconRunning(int beacon_nr)
 {
-  if((index>=0) && (index<BEACON_COUNT))
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT))
   {
-    return beacons[index].getEnabled();
+    return beacons[beacon_nr].getEnabled();
   }
   return false;
 }
 
-void setBeaconRunning(int index, bool state)
+void setBeaconRunning(int beacon_nr, bool state)
 {
   File f;
   char filename[20];
   
-  if((index>=0) && (index<BEACON_COUNT))
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT))
   {
-    sprintf(filename, "%d/ON", index);
-    beacons[index].setEnabled(state);
+    sprintf(filename, "%d/ON", beacon_nr);
+    beacons[beacon_nr].setEnabled(state);
     if(state)
     {
       f = SD.open(filename, FILE_WRITE);
@@ -78,13 +81,15 @@ void setBeaconRunning(int index, bool state)
   }
 }
 
-static bool getMessageHelper(int index, char *dest, int bufsz, const char* file)
+
+bool getBeaconMessage(int beacon_nr, int msg_index, char *dest, int bufsz)
 {
   char filename[20];
   File f;
-  if((index>=0) && (index<BEACON_COUNT) && (bufsz > 0))
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT) && (msg_index>=0) && (msg_index <= BEACON_DEFMSG) && (bufsz>0))
   {
-    sprintf(filename, "%d/%s", index, file);
+    dest[0]=0;
+    sprintf(filename, "%d/%s.TXT", beacon_nr, msg_filenames[msg_index]);
     f = SD.open(filename, FILE_READ);
     if(f)
     {
@@ -100,96 +105,99 @@ static bool getMessageHelper(int index, char *dest, int bufsz, const char* file)
       return true;
     }
   }
+  else
+  {
+    assert(0);
+  }
   return false;
 }
 
-static bool setMessageHelper(int index, char *msg, const char* file)
+void setBeaconMessage(int beacon_nr, int msg_index, char *text)
 {
   char filename[20];
   File f;
-  if((index>=0) && (index<BEACON_COUNT))
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT) && (msg_index>=0) && (msg_index <= BEACON_DEFMSG))
   {
-    sprintf(filename, "%d/%s", index, file);
+    sprintf(filename, "%d/%s.TXT", beacon_nr, msg_filenames[msg_index]);
     SD.remove(filename);
     f = SD.open(filename, FILE_WRITE);
     if(f)
     {
-      f.println(msg);
+      f.println(text);
       f.close();
     }
   }
-}
-
-bool getDefaultMessage(int index, char *dest, int bufsz)
-{
-  return getMessageHelper(index, dest, bufsz, "DEFAULT.TXT");
-}
-bool getMessage00(int index, char *dest, int bufsz)
-{
-  return getMessageHelper(index, dest, bufsz, "H00.TXT");
-}
-bool getMessage15(int index, char *dest, int bufsz)
-{
-  return getMessageHelper(index, dest, bufsz, "H15.TXT");
-}
-bool getMessage30(int index, char *dest, int bufsz)
-{
-  return getMessageHelper(index, dest, bufsz, "H30.TXT");
-}
-bool getMessage45(int index, char *dest, int bufsz)
-{
-  return getMessageHelper(index, dest, bufsz, "H45.TXT");
-}
-
-void setDefaultMessage(int index, char *msg)
-{
-  setMessageHelper(index, msg, "DEFAULT.TXT");
-}
-void setMessage00(int index, char *msg)
-{
-  setMessageHelper(index, msg, "H00.TXT");
-}
-void setMessage15(int index, char *msg)
-{
-  setMessageHelper(index, msg, "H15.TXT");
-}
-void setMessage30(int index, char *msg)
-{
-  setMessageHelper(index, msg, "H30.TXT");
-}
-void setMessage45(int index, char *msg)
-{
-  setMessageHelper(index, msg, "H45.TXT");
-}
-
-bool getCurrentMessage(int index, char *dest, int bufsz)
-{
-  if((index>=0) && (index<BEACON_COUNT))
+  else
   {
-    byte specialMessage = minute()/15;
-    if(specialMessage == lastSpecialMessage[index])
+    assert(0);
+  }
+}
+
+bool isBeaconMessageEnabled(int beacon_nr, int msg_index)
+{
+  char filename[20];
+  File f;
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT) && (msg_index>=0) && (msg_index <= BEACON_DEFMSG))
+  {
+    sprintf(filename, "%d/%s.ON", beacon_nr, msg_filenames[msg_index]);
+    return SD.exists(filename);
+  }
+  else
+  {
+    assert(0);
+  }
+  return false;
+}
+
+void setBeaconMessageEnabled(int beacon_nr, int msg_index, bool enabled)
+{
+  char filename[20];
+  File f;
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT) && (msg_index>=0) && (msg_index <= BEACON_DEFMSG))
+  {
+    sprintf(filename, "%d/%s.ON", beacon_nr, msg_filenames[msg_index]);
+    if(enabled)
     {
-      return getDefaultMessage(index, dest, bufsz);
+      f = SD.open(filename, FILE_WRITE);
+      f.close();
     }
     else
     {
-      lastSpecialMessage[index] = specialMessage;
-      switch(specialMessage)
+      SD.remove(filename);
+    }
+  }
+  else
+  {
+    assert(0);
+  }
+}
+
+bool getCurrentMessage(int beacon_nr, char *dest, int bufsz)
+{
+  if((beacon_nr>=0) && (beacon_nr<BEACON_COUNT) && (bufsz>0))
+  {
+    dest[0]=0;
+    byte specialMessage = minute()/15;
+    if(specialMessage != lastSpecialMessage[beacon_nr])
+    {
+      lastSpecialMessage[beacon_nr] = specialMessage;
+      if(isBeaconMessageEnabled(beacon_nr, specialMessage))
       {
-        case 0:
-          return getMessage00(index, dest, bufsz);
-        case 1:
-          return getMessage15(index, dest, bufsz);
-        case 2:
-          return getMessage30(index, dest, bufsz);
-        case 3:
-          return getMessage45(index, dest, bufsz);
-        default:
-          //assert(0);
-          return false;
+        getBeaconMessage(beacon_nr, specialMessage, dest, bufsz);
+      }
+    }
+    if(dest[0]==0)
+    {
+      if(isBeaconMessageEnabled(beacon_nr, BEACON_DEFMSG))
+      {
+        getBeaconMessage(beacon_nr, BEACON_DEFMSG, dest, bufsz);
       }
     }
   }
-  return false;
+  else
+  {
+    assert(0);
+  }
+  return dest[0]!=0;
 }
 
