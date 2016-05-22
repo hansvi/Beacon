@@ -1,4 +1,5 @@
 // PSTR : https://lowpowerlab.com/forum/index.php?topic=1199.5;wap2
+// DS1820: gnd:1 2:data 3:vdd (flat on top, pins towards you -> 1 is left) 4k7 between data and vdd
 
 #include "BeaconController.h"
 #include "Sensors.h"

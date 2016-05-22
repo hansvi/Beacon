@@ -280,16 +280,16 @@ static bool send404NotFound(EthernetClient &client, const char* filename)
   const char *post  = " was not found on the SD card</<p></body></html>";
   int total = strlen(pre) + strlen(post) + strlen(filename);
   
-    client.println(F("HTTP/1.1 404 Not found"));
-    client.println(F("Content-Type: text/html"));
-    client.print(F("Content-Length: "));
-    client.println(total);
-    client.println();
+  client.println(F("HTTP/1.1 404 Not found"));
+  client.println(F("Content-Type: text/html"));
+  client.print(F("Content-Length: "));
+  client.println(total);
+  client.println();
 
-    client.print(pre);
-    client.print(filename);
-    client.print(post);
-    return false;
+  client.print(pre);
+  client.print(filename);
+  client.print(post);
+  return false;
 }
 
 static bool sendIndexHtm(EthernetClient &client)
@@ -473,21 +473,18 @@ static void parsePostParam(char *text, int beacon_nr, BeaconSettings *settings)
     {
       settings->textid = 3;
     }
-//    Serial.print("id: ");
-//    Serial.println(text+7);
-    // which message are we talking about
   }
 }
 
 static void sendMessageForm(char *frame_buf, EthernetClient &client, const char *textid, const char *title, const char *content, bool enabled)
 {
-  sprintf_P(frame_buf, PSTR("<form action=\"index.htm\" method=\"POST\">%s:<br/>\r\n"), title);
+  sprintf_P(frame_buf, PSTR("<form action=\"index.htm\" method=\"POST\"><fieldset><legend>%s:</legend>\r\n"), title);
   client.write(frame_buf, strlen(frame_buf));
   sprintf_P(frame_buf, PSTR("<input type=\"checkbox\" name=\"enabled\" %s> Enabled<br/>"), (enabled ? " checked" : ""));
   client.write(frame_buf, strlen(frame_buf));
   sprintf_P(frame_buf, PSTR("<input type=\"text\" name=\"msg\" value=\"%s\">\r\n"), content);
   client.write(frame_buf, strlen(frame_buf));
-  sprintf_P(frame_buf, PSTR("<input type=\"hidden\" name=\"textid\" value=\"%s\"><input type=\"submit\" value=\"Update\"></form>\r\n"), textid);
+  sprintf_P(frame_buf, PSTR("<input type=\"hidden\" name=\"textid\" value=\"%s\"><input type=\"submit\" value=\"Update\"></fieldset></form>\r\n"), textid);
   client.write(frame_buf, strlen(frame_buf));
 }
 
@@ -496,9 +493,9 @@ static void sendBeaconSettingsPage(char *frame_buf, EthernetClient &client, int 
   char beacon_text[BEACON_MESSAGE_LENGTH];
   sendDynamicHeader(frame_buf, client, "text/html");
   const char *pre  = "<html><header><title>Beacon Settings</title></header><body><h1>";
-  const char *post  = "</body></html>";
+  const char *post  = "<h1><a href=\"/index.htm\">Back to main page</a></h1></body></html>";
   client.write(pre, strlen(pre));
-  sprintf(frame_buf, "<h1>beacon number %d</h1>", beacon_nr);
+  sprintf(frame_buf, "<h1>beacon number %d <a href=\"index.htm\">(refresh page)</a></h1>", beacon_nr);
   client.write(frame_buf, strlen(frame_buf));
   
   getBeaconMessage(beacon_nr, BEACON_DEFMSG, beacon_text, BEACON_MESSAGE_LENGTH);
@@ -553,6 +550,7 @@ static bool processPostRequest(EthernetClient &client, int beacon_nr)
   if((settings.textid>=0) && (settings.textid<5))
   {
     setBeaconMessage(beacon_nr, settings.textid, settings.text);
+    setBeaconMessageEnabled(beacon_nr, settings.textid, settings.enabled);
   }
   // The POST request has been parsed. Let's do a sanity check, update the configuration and send back the page.
   sendBeaconSettingsPage(frame_buf, client, beacon_nr);
@@ -565,46 +563,12 @@ static bool sendBeaconIndexHtm(EthernetClient & client, int beacon_nr)
   return true;
 }
 
-static bool setDefHandler(EthernetClient &client, int beacon_nr)
-{
-  processPostRequest(client, beacon_nr);
-  return false;
-}
-
-static bool setH00Handler(EthernetClient &client, int beacon_nr)
-{
-  processPostRequest(client, beacon_nr);
-  return false;
-}
-
-static bool setH15Handler(EthernetClient &client, int beacon_nr)
-{
-  processPostRequest(client, beacon_nr);
-  return false;
-}
-
-static bool setH30Handler(EthernetClient &client, int beacon_nr)
-{
-  processPostRequest(client, beacon_nr);
-  return false;
-}
-
-static bool setH45Handler(EthernetClient &client, int beacon_nr)
-{
-  processPostRequest(client, beacon_nr);
-  return false;
-}
 
 // Beacon-specific pages, ie http://a.b.c.d/<beacon-nr>/file.ext
 BeaconPage beaconpages[] =
 {
   {"/index.htm", processPostRequest},
-  {"/", sendBeaconIndexHtm},
-  {"/setdef.htm", setDefHandler},
-  {"/seth00.htm", setH00Handler},
-  {"/seth15.htm", setH15Handler},
-  {"/seth30.htm", setH30Handler},
-  {"/seth45.htm", setH45Handler},
+  {"/", processPostRequest},
   {NULL, NULL}
 };
 
