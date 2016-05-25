@@ -331,7 +331,7 @@ static bool sendLogDays(EthernetClient &client, const char *filename)
     {
       // 24 chars per entry + 2 filenames (8.3) so 48 characters per entry max.
       // This implies we can concatenate up to 5 entries and send them as one frame
-      sprintf(ptr, "<li><a href=\"%s\">%s</a></li>", entry.name(), entry.name());
+      sprintf(ptr, "<li><a href=\"%s%s\">%s</a></li>", entry.name(), (entry.isDirectory() ? "/" : ""), entry.name());
       file_count++;
       if(file_count < 5)
       {
@@ -691,16 +691,16 @@ static bool httpRespond(EthernetClient &client)
       if(isdigit(HTTP_req_filename[5]) &&
          isdigit(HTTP_req_filename[6]) &&
          isdigit(HTTP_req_filename[7]) &&
-         isdigit(HTTP_req_filename[8]) &&
-         (HTTP_req_filename[9]=='/'))
+         isdigit(HTTP_req_filename[8]))
       {
         // Check month in URL
-        if(isdigit(HTTP_req_filename[10]) &&
-           isdigit(HTTP_req_filename[11]) &&
-           (HTTP_req_filename[12]=='/'))
+        if((HTTP_req_filename[9]=='/') &&
+           isdigit(HTTP_req_filename[10]) &&
+           isdigit(HTTP_req_filename[11]))
         {
           // Check day in URL
-          if(isdigit(HTTP_req_filename[13]) &&
+          if((HTTP_req_filename[12]=='/') &&
+             isdigit(HTTP_req_filename[13]) &&
              isdigit(HTTP_req_filename[14]) &&
              (HTTP_req_filename[15]=='.') &&
              ((HTTP_req_filename[16]=='C') || (HTTP_req_filename[16]=='c')) &&
@@ -713,7 +713,8 @@ static bool httpRespond(EthernetClient &client)
           else
           {
             // no day part found in URL
-            if(HTTP_req_filename[13]==0)
+            if((HTTP_req_filename[13]==0) ||
+               ((HTTP_req_filename[13]=='/') && (HTTP_req_filename[14]==0)) )
             {
               return sendLogDays(client, HTTP_req_filename);
             }
@@ -726,7 +727,8 @@ static bool httpRespond(EthernetClient &client)
         else
         {
           // No month part found in URL
-          if(HTTP_req_filename[10]==0)
+          if((HTTP_req_filename[10]==0) ||
+             ((HTTP_req_filename[10]=='/') && (HTTP_req_filename[11]==0)))
           {
             return sendLogMonths(client, HTTP_req_filename);
           }
@@ -739,7 +741,8 @@ static bool httpRespond(EthernetClient &client)
       else
       {
         // No year part found in URL
-        if(HTTP_req_filename[5]==0)
+        if((HTTP_req_filename[5]==0) ||
+           ((HTTP_req_filename[5]=='/') && (HTTP_req_filename[6]==0)))
         {
           return sendLogYears(client, HTTP_req_filename);
         }

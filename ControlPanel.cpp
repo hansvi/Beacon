@@ -205,11 +205,15 @@ bool getCurrentMessage(int beacon_nr, char *dest, int bufsz)
   return dest[0]!=0;
 }
 
-static void logToFile(File &f)
+static void logToFile(File &f, time_t timestamp)
 {
   char logline[LOGLINE_SIZE];
   char *ptr = logline;
   int i;
+  
+  sprintf(ptr, "%02d:%02d\t", hour(timestamp), minute(timestamp));
+  ptr += strlen(ptr);
+  
   for(i=0; i<NUM_ANALOG_CHANNELS; i++)
   {
     if(i)
@@ -225,9 +229,10 @@ static void logToFile(File &f)
   }
   *ptr++='\n';
   *ptr=0;
+  f.print(logline);
 }
 
-void writeLog(unsigned long timestamp)
+void writeLog(time_t timestamp)
 {
   if(timeStatus() == timeNotSet)
   {
@@ -260,7 +265,7 @@ void writeLog(unsigned long timestamp)
   f = SD.open(filename, FILE_WRITE);
   if(f)
   {
-    logToFile(f);
+    logToFile(f, timestamp);
     f.close();
   }
 }

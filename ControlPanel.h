@@ -1,6 +1,8 @@
 #ifndef CONTROLPANEL_H_
 #define CONTROLPANEL_H_
 
+#include <TimeLib.h>
+
 #define BEACON_H00MSG 0
 #define BEACON_H15MSG 1
 #define BEACON_H30MSG 2
@@ -20,6 +22,6 @@ void setBeaconMessageEnabled(int beacon_nr, int msg_index, bool enabled);
 
 bool getCurrentMessage(int index, char *dest, int bufsz);
 
-void writeLog(unsigned long timestamp);
+void writeLog(time_t timestamp);
 
 #endif

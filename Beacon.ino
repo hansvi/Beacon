@@ -52,6 +52,8 @@ const byte beaconPins[BEACON_COUNT][4] =
 byte beaconMessages[BEACON_COUNT][BEACON_MESSAGE_LENGTH];
 char textBuffer[BEACON_MESSAGE_LENGTH];
 
+time_t last_log=0;
+
 // TODO: Replace with GPS sychronisation
 void processSyncMessage()
 {
@@ -97,6 +99,20 @@ void setup()
   Serial.println("Enter the time (format: T<number> where <number> is the unix time)");
   while(!Serial.available()) {}
   processSyncMessage();
+  last_log=now();
+  Serial.print("Date: ");
+  Serial.print(year());
+  Serial.print("-");
+  Serial.print(month());
+  Serial.print("-");
+  Serial.print(day());
+  Serial.print(" ");
+  Serial.print(hour());
+  Serial.print(":");
+  Serial.println(minute());
+  
+  // TODO: For debugging only!!
+    SD.remove("/log/2016/05/25.CSV");
   
   // Setup TIMER 1 hardware directly
   cli();//stop interrupts
@@ -126,7 +142,6 @@ ISR(TIMER1_COMPA_vect)
     beacons[i].tick();
   }
 }
-time_t last_log=0;
 
 void loop()
 {
