@@ -155,9 +155,6 @@ static void urldecode2(char *dst, const char *src)
 static const char * getMimeType(const char *filename)
 {
   int fn_len = strlen(filename);
-  Serial.print("Filename extension: '");
-  Serial.print(filename+fn_len-3);
-  Serial.println("'");
   if(strncasecmp(filename+fn_len-3, "png", 3)==0)
   {
     return "image/png";
@@ -274,6 +271,104 @@ static void sendSDFile(EthernetClient &client, const char *filename, bool try_gz
   }
 }
 
+/*!
+ * Send a raw CSV log file
+ *
+ * \param client    connection to web browser
+ * \param filename  log file to send
+ *
+ * \returns true to keep connectio open, false to close it.
+ */
+static bool sendSDLogFile(EthernetClient &client, const char *filename)
+{
+  char frame_buf[200];
+  byte bytes_read;
+  File web_file;
+  web_file = SD.open(filename, FILE_READ);
+  if(web_file)
+  {
+    sendStaticHeader(frame_buf, client, "text/csv", web_file.size(), false);
+    web_file.setTimeout(0);
+    while(web_file.available())
+    {
+      bytes_read = web_file.readBytes(frame_buf, sizeof(frame_buf));
+      client.write(frame_buf, bytes_read);
+    }
+    web_file.close();
+  }
+  else
+  {
+    send404NotFound(client, filename);
+    // File not found
+  }
+  return false;
+}
+
+/*
+ * Given a directory like "/log/2016/05/", generate a html file containing the list of log files.
+ *
+ * \param client    connection to web browser
+ * \param filename  directory to open
+ *
+ * \returns true to keep connectio open, false to close it.
+ */
+static bool sendLogDays(EthernetClient &client, const char *filename)
+{
+  const char *pre = "<html><head><title>Log entries</title></head><body><ul>";
+  const char *post = "</ul></body></html>";
+  char frame_buf[241];
+  char *ptr = frame_buf;
+  byte file_count=0;
+  File directory, entry;
+
+  directory = SD.open(filename);
+  if(directory && directory.isDirectory())
+  {
+    sendDynamicHeader(frame_buf, client, "text/html");
+    client.write(pre, strlen(pre));
+    
+    for(entry=directory.openNextFile(); entry; entry=directory.openNextFile())
+    {
+      // 24 chars per entry + 2 filenames (8.3) so 48 characters per entry max.
+      // This implies we can concatenate up to 5 entries and send them as one frame
+      sprintf(ptr, "<li><a href=\"%s\">%s</a></li>", entry.name(), entry.name());
+      file_count++;
+      if(file_count < 5)
+      {
+        ptr += strlen(ptr);
+      }
+      else
+      {
+        client.write(frame_buf, strlen(frame_buf));
+        file_count=0;
+        ptr = frame_buf;
+      }
+      entry.close();
+    }
+    if(file_count) // send the remainder
+    {
+      client.write(frame_buf, strlen(frame_buf));
+    }
+    client.write(post, strlen(post));
+  }
+  else
+  {
+    send404NotFound(client, filename);
+    // File not found
+  }
+  return false;
+}
+
+static bool sendLogMonths(EthernetClient &client, const char *filename)
+{
+  return sendLogDays(client, filename);
+}
+
+static bool sendLogYears(EthernetClient &client, const char *filename)
+{
+  return sendLogDays(client, filename);
+}
+
 static bool send404NotFound(EthernetClient &client, const char* filename)
 {
   const char *pre  = "<html><header><title>404 File not found</title></header><body><h1>File not found</h1><p>Sorry the file ";
@@ -294,9 +389,7 @@ static bool send404NotFound(EthernetClient &client, const char* filename)
 
 static bool sendIndexHtm(EthernetClient &client)
 {
-  Serial.println("Sending index.htm");
-//  sendSDFile(client, "index.htm", HTTP_can_use_gzip);
-  sendSDFile(client, "index.htm", false);
+  sendSDFile(client, "index.htm", HTTP_can_use_gzip);
   return false;
 }
 
@@ -330,11 +423,7 @@ static bool sendAnalogJSON(EthernetClient &client)
       *ptr++ = ',';
       *ptr++ = '"';
     }
-    readAnalogSensor(ptr, i);
-    while(*ptr) 
-    {
-      ptr++;
-    }
+    ptr += readAnalogSensor(ptr, i);
     *ptr++ = '"';
   }
   *ptr++ = ']';
@@ -360,11 +449,7 @@ static bool sendTemperatureJSON(EthernetClient &client)
       *ptr++ = ',';
       *ptr++ = '"';
     }
-    readTemperatureSensor(ptr, i);
-    while(*ptr)
-    {
-      ptr++;
-    }
+    ptr += readTemperatureSensor(ptr, i);
     *ptr++ = '"';
   }
   *ptr++ = ']';
@@ -436,7 +521,6 @@ static void parsePostParam(char *text, int beacon_nr, BeaconSettings *settings)
 {
   if(strncasecmp(text, "enabled=", 8) == 0)
   {
-    Serial.println("Enable beacon");
     settings->enabled = true;
     // enable sending this?
   }
@@ -445,9 +529,6 @@ static void parsePostParam(char *text, int beacon_nr, BeaconSettings *settings)
     if(strlen(text+4) < BEACON_MESSAGE_LENGTH)
     {
       urldecode2(settings->text, text+4);
-      Serial.print("Message = \"");
-      Serial.print(text+4);
-      Serial.println('"');
       // new beacon text
     }
   }
@@ -584,7 +665,7 @@ static bool httpRespond(EthernetClient &client)
   if(1)
   {
     if( (HTTP_req_filename[0]=='/') &&
-        (HTTP_req_filename[1]>='0') && (HTTP_req_filename[1]<='9') &&
+        isdigit(HTTP_req_filename[1]) &&
         (HTTP_req_filename[2]=='/') )
     {
       BeaconPage *page;
@@ -601,8 +682,71 @@ static bool httpRespond(EthernetClient &client)
       }
       else
       {
-        Serial.println("404 not found");
         return send404NotFound(client, HTTP_req_filename);
+      }
+    }
+    else if(strncasecmp(HTTP_req_filename, "/log/", 5) == 0)
+    {
+      // check year in URL
+      if(isdigit(HTTP_req_filename[5]) &&
+         isdigit(HTTP_req_filename[6]) &&
+         isdigit(HTTP_req_filename[7]) &&
+         isdigit(HTTP_req_filename[8]) &&
+         (HTTP_req_filename[9]=='/'))
+      {
+        // Check month in URL
+        if(isdigit(HTTP_req_filename[10]) &&
+           isdigit(HTTP_req_filename[11]) &&
+           (HTTP_req_filename[12]=='/'))
+        {
+          // Check day in URL
+          if(isdigit(HTTP_req_filename[13]) &&
+             isdigit(HTTP_req_filename[14]) &&
+             (HTTP_req_filename[15]=='.') &&
+             ((HTTP_req_filename[16]=='C') || (HTTP_req_filename[16]=='c')) &&
+             ((HTTP_req_filename[17]=='S') || (HTTP_req_filename[17]=='s')) &&
+             ((HTTP_req_filename[18]=='V') || (HTTP_req_filename[18]=='v')) &&
+             (HTTP_req_filename[19]==0))
+          {
+            return sendSDLogFile(client, HTTP_req_filename);
+          }
+          else
+          {
+            // no day part found in URL
+            if(HTTP_req_filename[13]==0)
+            {
+              return sendLogDays(client, HTTP_req_filename);
+            }
+            else
+            {
+              return send404NotFound(client, HTTP_req_filename);
+            }
+          }
+        }
+        else
+        {
+          // No month part found in URL
+          if(HTTP_req_filename[10]==0)
+          {
+            return sendLogMonths(client, HTTP_req_filename);
+          }
+          else
+          {
+            return send404NotFound(client, HTTP_req_filename);
+          }
+        }
+      }
+      else
+      {
+        // No year part found in URL
+        if(HTTP_req_filename[5]==0)
+        {
+          return sendLogYears(client, HTTP_req_filename);
+        }
+        else
+        {
+          return send404NotFound(client, HTTP_req_filename);
+        }
       }
     }
     else
@@ -621,11 +765,9 @@ static bool httpRespond(EthernetClient &client)
       }
       else
       {
-        Serial.println("404 not found");
         return send404NotFound(client, HTTP_req_filename);
       }
     }
   }
 }
-
 

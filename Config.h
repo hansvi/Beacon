@@ -21,4 +21,9 @@
 #define NUM_ANALOG_CHANNELS 16
 #define NUM_TEMPERATURE_CHANNELS 8
 
+#define LOGLINE_SIZE ((NUM_ANALOG_CHANNELS*5) + (NUM_TEMPERATURE_CHANNELS*6) + 5)
+
+// Log interval in seconds
+#define LOG_INTERVAL 300
+
 #endif

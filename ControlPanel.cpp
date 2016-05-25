@@ -1,6 +1,7 @@
 #include "ControlPanel.h"
 #include "Config.h"
 #include "BeaconController.h"
+#include "Sensors.h"
 #include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
@@ -49,6 +50,10 @@ void controlPanelInit()
       beacons[i].setEnabled(false);
     }
   }
+  if(!SD.exists("/log"))
+  {
+    SD.mkdir("/log");
+  }
 }
 
 bool isBeaconRunning(int beacon_nr)
@@ -80,7 +85,6 @@ void setBeaconRunning(int beacon_nr, bool state)
     }
   }
 }
-
 
 bool getBeaconMessage(int beacon_nr, int msg_index, char *dest, int bufsz)
 {
@@ -201,3 +205,62 @@ bool getCurrentMessage(int beacon_nr, char *dest, int bufsz)
   return dest[0]!=0;
 }
 
+static void logToFile(File &f)
+{
+  char logline[LOGLINE_SIZE];
+  char *ptr = logline;
+  int i;
+  for(i=0; i<NUM_ANALOG_CHANNELS; i++)
+  {
+    if(i)
+    {
+      *ptr++='\t';
+    }
+    ptr += readAnalogSensor(ptr, i);
+  }
+  for(i=0; i<NUM_TEMPERATURE_CHANNELS; i++)
+  {
+    *ptr++='\t';
+    ptr += readTemperatureSensor(ptr, i);
+  }
+  *ptr++='\n';
+  *ptr=0;
+}
+
+void writeLog(unsigned long timestamp)
+{
+  if(timeStatus() == timeNotSet)
+  {
+    // Do not log if the time is unknown
+    return;
+  }
+  // eg: /log/2016/12/31.log
+  char filename[21];
+  File f;
+  int log_year = year(timestamp);
+  int log_month = month(timestamp);
+  int log_day = day(timestamp);
+  int log_hour = hour(timestamp);
+  int log_minute = minute(timestamp);
+  sprintf(filename, "/log/%04d/%02d/%02d.csv", log_year, log_month, log_day);
+  if(!SD.exists(filename))
+  {
+    sprintf(filename, "/log/%04d", log_year);
+    if(!SD.exists(filename))
+    {
+      SD.mkdir(filename);
+    }
+    sprintf(filename, "/log/%04d/%02d", log_year, log_month);
+    if(!SD.exists(filename))
+    {
+      SD.mkdir(filename);
+    }
+    sprintf(filename, "/log/%04d/%02d/%02d.csv", log_year, log_month, log_day);
+  }
+  f = SD.open(filename, FILE_WRITE);
+  if(f)
+  {
+    logToFile(f);
+    f.close();
+  }
+}

@@ -19,6 +19,8 @@
 #include <TimeLib.h>
 #include <Ethernet.h>
 
+#define TIME_HEADER "T"
+
 /* Example running 9 beacons simultaneously.
    If there is a problem with translating the texts to morse code,
    an error message will be printed on the serial port and the transmission will not start
@@ -33,6 +35,7 @@
 
 Beacon beacons[BEACON_COUNT];
 
+// IO pins used by the beacons (normal/inverted/PM0/PM1)
 const byte beaconPins[BEACON_COUNT][4] = 
 {
   {9,8,7,6},
@@ -46,22 +49,24 @@ const byte beaconPins[BEACON_COUNT][4] =
   {50,51,52,52}
 };
 
-/*
-const char* beaconTexts[BEACON_COUNT] =
-{
-  "This is a test $-1",  // Beacon 0: Pin 9
-  "Dit is een test $-1",  // Beacon 1: Pin 22
-  "Ceci est un test $-1",  // Beacon 2: Pin 26 
-  "test $-2$+2$-2 $-1",  // Beacon 3: Pin 30
-  "$A00 $-2",  // Beacon 4: Pin 34
-  "$P0 mode 0 $-5 $P1 mode 1 $-5 $P2 mode 2 $-5 $P3 mode 3 $-5", // Beacon 5: Pin 38
-  "$T0 $-1",   // Beacon 6: Pin 42
-  "7  7  7 $-1",   // Beacon 7: Pin 46
-  "8  8  8 $-1",    // Beacon 8: Pin 50
-};*/
-
 byte beaconMessages[BEACON_COUNT][BEACON_MESSAGE_LENGTH];
 char textBuffer[BEACON_MESSAGE_LENGTH];
+
+// TODO: Replace with GPS sychronisation
+void processSyncMessage()
+{
+  unsigned long pctime;
+  const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013
+
+  if(Serial.find(TIME_HEADER))
+  {
+    pctime = Serial.parseInt();
+    if( pctime >= DEFAULT_TIME)  // check the integer is a valid time (greater than Jan 1 2013)
+    {
+      setTime(pctime); // Sync Arduino clock to the time received on the serial port
+    }
+  }
+}
 
 void setup()
 {
@@ -87,6 +92,11 @@ void setup()
     }
     beacons[i].setNextMessage(beaconMessages[i]);
   }
+  
+  // Wait until the time is synchronized
+  Serial.println("Enter the time (format: T<number> where <number> is the unix time)");
+  while(!Serial.available()) {}
+  processSyncMessage();
   
   // Setup TIMER 1 hardware directly
   cli();//stop interrupts
@@ -116,6 +126,7 @@ ISR(TIMER1_COMPA_vect)
     beacons[i].tick();
   }
 }
+time_t last_log=0;
 
 void loop()
 {
@@ -142,5 +153,15 @@ void loop()
   }
   sensorsTick();
   WebServerTick();
+  if(Serial.available())
+  {
+    processSyncMessage();
+  }
+  time_t t=now();
+  if((t-last_log) > LOG_INTERVAL)
+  {
+    writeLog(t);
+    last_log += LOG_INTERVAL; // prevent drifting of the logging times
+  }
   delay(20);
 }

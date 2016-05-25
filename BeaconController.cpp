@@ -1,6 +1,7 @@
 #include "BeaconController.h"
 #include "Sensors.h"
 #include <avr/pgmspace.h>
+#include <assert.h>
 
 // About WPM:
 // There are multiple definitions about WPM speeds.
@@ -91,30 +92,38 @@ byte morseEncodeChar(char c)
   }
 }
 
-/* Encode a string into a coded morse message
-   the user is responsible for the codedMessage memory space.
-   Special codes:
-    $P0  ... $P3: Inserts a "Set power mode" code into the output.
-    $A00 ... $A15: Inserts the current value of the analog channel into the message (at encoding time, not transmit time!)
-    $T0 ... T7: Inserts the current temperature into the message (at encoding time)
-    $+1 ... $+9: insert delay with CARRIER ON
-    $-1 ... $-9: insert delay with CARRIER OFF
-
-   Parameters:
-    codedMessage: output of the encoder
-    str: the message to encode
-    maxBytes: the number of bytes codedOutput can hold
-
-   Returns:
-    true: success
-    false: there was an error parsing the string
-*/
-
+/*!
+ * Encode an ASCII string to a encoded morse message, where each byte represents a morse character or a special "op code",
+ * Special codes:
+ *  $P0  ... $P3: Inserts a "Set power mode" code into the output.
+ *  $A00 ... $A15: Inserts the current value of the analog channel into the message (at encoding time, not transmit time!)
+ *  $T0 ... T7: Inserts the current temperature into the message (at encoding time)
+ *  $+1 ... $+9: insert delay with CARRIER ON
+ *  $-1 ... $-9: insert delay with CARRIER OFF
+ * If encoding fails, the error can be retreived as a human-readable string using morseGetError.
+ *
+ * \param codedMessage  the destination buffer
+ * \param str           the ASCII string
+ * \param maxBytes      the size of the destination buffer. Should be at least 1 so and MORSE_END can be written 
+ *
+ * \return true on success, false if encoding fails
+ *
+ * \sa morseGetError()
+ */
 boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
 {
   morseParseError[0] = 0;
   int outPos = 0;
-  
+  assert(maxBytes>0);
+  if(maxBytes>0)
+  {
+    maxBytes--; // We will always need a terminating zero
+  }
+  else
+  {
+    strcpy_P(morseParseError, PSTR("output buffer has size 0"));
+    return false;
+  }
   for(int i = 0; str[i]; i++)
   {
     /* Special code */
@@ -129,7 +138,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         i++;
         if( (str[i]>='0') && (str[i]<='3') )
         {
-          if(outPos>=maxBytes)
+          if(outPos>maxBytes)
           {
             sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
@@ -173,7 +182,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
           return false;
         }
         // We parsed the channel nr. Check for worst case string size.
-        if((outPos+maxAnalogStrSize(channel))>=maxBytes)
+        if((outPos+maxAnalogStrSize(channel))>maxBytes)
         {
           sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
@@ -214,7 +223,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         }
         
         // We parsed the channel number. Check worst case size
-        if((outPos+maxTemperatureStrSize(channel))>=maxBytes)
+        if((outPos+maxTemperatureStrSize(channel))>maxBytes)
         {
           sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
@@ -242,7 +251,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         i++;
         if((str[i]>='1') && (str[i]<='9'))
         {
-          if(outPos>=maxBytes)
+          if(outPos>maxBytes)
           {
             sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
@@ -265,7 +274,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
         i++;
         if((str[i]>='1') && (str[i]<='9'))
         {
-          if(outPos>=maxBytes)
+          if(outPos>maxBytes)
           {
             sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
             codedMessage[0] = MORSE_END;
@@ -299,7 +308,7 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
       }
       else
       {
-        if(outPos>=maxBytes)
+        if(outPos>maxBytes)
         {
           sprintf_P(morseParseError, PSTR("output buffer too small (max. %d bytes)"), maxBytes);
           codedMessage[0] = MORSE_END;
@@ -313,8 +322,11 @@ boolean morseEncodeMessage(byte *codedMessage, const char *str, int maxBytes)
   return true;
 }
 
-/* Returns a human-readable string detailing the last error while parsing a morse string (if any)
-*/
+/*!
+ * Returns a human-readable string detailing the last error while parsing a morse string (if any)
+ * /returns a human-readable error message or "" if there was no error.
+ * /sa morseEncodeMessage()
+ */
 const char* morseGetError()
 {
   return morseParseError;

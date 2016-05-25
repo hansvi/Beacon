@@ -41,6 +41,9 @@ void sensorsInit()
   lastConversion = millis();
 }
 
+/*!
+ * Periodically read analog inputs and temperature sensors
+ */
 void sensorsTick()
 {
   unsigned long now = millis();
@@ -64,21 +67,36 @@ void sensorsTick()
   }
 }
 
+/*!
+ * Give the worst case string size of a temperature channel 
+ *
+ * \param channel  Number of the sensor
+ *
+ * \return The length of the string just written (not including the terminating zero)
+ */
 int maxAnalogStrSize(int channel)
 {
   if((channel>=0) && (channel<NUM_ANALOG_CHANNELS))
   {
     // Format will be eg. "4V2"
-    return 4;
+    return 3;
   }
   else
   {
     // write "ERR"
-    return 4;
+    return 3;
   }
 }
 
-void readAnalogSensor(char *dest, int channel)
+/*!
+ * Read the voltage of an analog input as a null-terminated string value. Returns the length of the string.
+ *
+ * \param dest     String where to write the result to.
+ * \param channel  Number of the sensor
+ *
+ * \return The length of the string just written (not including the terminating zero)
+ */
+int readAnalogSensor(char *dest, int channel)
 {
   if((channel>=0) && (channel<NUM_ANALOG_CHANNELS))
   {
@@ -92,6 +110,7 @@ void readAnalogSensor(char *dest, int channel)
     dest[1] = 'V';
     dest[2] = '0' + (value%10);
     dest[3]=0;
+    return 3;
   }
   else
   {
@@ -99,24 +118,40 @@ void readAnalogSensor(char *dest, int channel)
     dest[1]='R';
     dest[2]='R';
     dest[3]=0;
+    return 3;
   }
 }
 
+/*!
+ * Give the worst case string size of a temperature channel 
+ *
+ * \param channel  Number of the sensor
+ *
+ * \return The length of the string just written (not including the terminating zero)
+ */
 int maxTemperatureStrSize(int channel)
 {
   if((channel>=0) && (channel<temperatureDeviceCount))
   {
     // Example: "-11C"
-    return 5;
+    return 4;
   }
   else
   {
     // write "ERR"
-    return 4;
+    return 3;
   }
 }
 
-void readTemperatureSensor(char *dest, int channel)
+/*!
+ * Read the temperature of a sensor as a null-terminated string value. Returns the length of the string.
+ *
+ * \param dest     String where to write the result to.
+ * \param channel  Number of the sensor
+ *
+ * \return The length of the string just written (not including the terminating zero)
+ */
+int readTemperatureSensor(char *dest, int channel)
 {
   if((channel>=0) && (channel<temperatureDeviceCount))
   {
@@ -127,7 +162,8 @@ void readTemperatureSensor(char *dest, int channel)
       dest[1] = 'R';
       dest[2] = 'N';
       dest[3] = 'G';
-      dest[3] = 0;
+      dest[4] = 0;
+      return 4;
     }
     else
     {
@@ -151,6 +187,7 @@ void readTemperatureSensor(char *dest, int channel)
       dest[i++] = '0' + t;
       dest[i++] = 'C';
       dest[i] = 0;
+      return i;
     }
   }
   else
@@ -159,9 +196,7 @@ void readTemperatureSensor(char *dest, int channel)
     dest[1]='R';
     dest[2]='R';
     dest[3]=0;
+    return 3;
   }
-  Serial.print("$T");
-  Serial.print(channel);
-  Serial.print(" -> ");
-  Serial.println(dest);
 }
+
